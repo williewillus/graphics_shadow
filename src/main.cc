@@ -4,6 +4,7 @@
 #include "config.h"
 #include "gui.h"
 #include "render_pass.h"
+#include "floor_renderer.h"
 
 #include <algorithm>
 #include <array>
@@ -64,47 +65,8 @@ int main(int argc, char *argv[]) {
   GUI gui(window, main_view_width, main_view_height, preview_height);
 
   MatrixPointers mats; // Define MatrixPointers here for lambda to capture
-                       /*
-                        * In the following we are going to define several lambda functions to bind
-                        * Uniforms.
-                        *
-                        * Introduction about lambda functions:
-                        *      http://en.cppreference.com/w/cpp/language/lambda
-                        *      http://www.stroustrup.com/C++11FAQ.html#lambda
-                        */
-  /*
-   * The following lambda functions are defined to bind uniforms
-   */
-  auto matrix_binder = [](int loc, const void *data) {
-    glUniformMatrix4fv(loc, 1, GL_FALSE, (const GLfloat *)data);
-  };
-  auto vector_binder = [](int loc, const void *data) {
-    glUniform4fv(loc, 1, (const GLfloat *)data);
-  };
-  auto vector3_binder = [](int loc, const void *data) {
-    glUniform3fv(loc, 1, (const GLfloat *)data);
-  };
-  auto float_binder = [](int loc, const void *data) {
-    glUniform1fv(loc, 1, (const GLfloat *)data);
-  };
-  auto int_binder = [](int loc, const void *data) {
-    glUniform1iv(loc, 1, (const GLint *)data);
-  };
-  /*
-   * The lambda functions below are used to retrieve data
-   */
-  auto std_model_data = [&mats]() -> const void * {
-    return mats.model;
-  }; // This returns point to model matrix
-  glm::mat4 floor_model_matrix = glm::mat4(1.0f);
-  auto floor_model_data = [&floor_model_matrix]() -> const void * {
-    return &floor_model_matrix[0][0];
-  }; // This return model matrix for the floor.
-  auto std_view_data = [&mats]() -> const void * { return mats.view; };
-  auto std_camera_data = [&gui]() -> const void * {
-    return &gui.getCamera()[0];
-  };
-  auto std_proj_data = [&mats]() -> const void * { return mats.projection; };
+
+  FloorRenderer floor_renderer;
   
   while (!glfwWindowShouldClose(window)) {
     // Setup some basic window stuff.
@@ -124,6 +86,7 @@ int main(int argc, char *argv[]) {
     mats = gui.getMatrixPointers();
 
     // do everything
+    floor_renderer.draw();
 
     // Poll and swap.
     glfwPollEvents();
