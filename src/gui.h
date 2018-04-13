@@ -25,6 +25,9 @@ public:
   GUI(GLFWwindow *, int view_width = -1, int view_height = -1,
       int preview_height = -1);
   ~GUI();
+
+  float scroll = 0.0f;
+
   void assignMesh(Mesh *);
 
   void keyCallback(int key, int scancode, int action, int mods);
@@ -47,7 +50,10 @@ public:
 
   float getCamDist() const { return camera_distance_; }
   void setCamDist(float f) { camera_distance_ = f; }
-  float scroll = 0.0f;
+
+  const glm::mat4& get_view()       const { return view_matrix_; }
+  const glm::mat4& get_projection() const { return projection_matrix_; }
+  
 private:
   GLFWwindow *window_;
 
