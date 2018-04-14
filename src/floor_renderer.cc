@@ -1,11 +1,19 @@
 #include "floor_renderer.h"
-#include "shader_sources.h"
 #include <iostream>
 #include <debuggl.h>
 #include <glm/ext.hpp>
 
 FloorRenderer::FloorRenderer() {
   // init shaders
+  const char* floor_vert = 
+  #include "shaders/floor.vert"
+  ;
+  const char* floor_geom = 
+  #include "shaders/floor.geom"
+  ;
+  const char* floor_frag = 
+  #include "shaders/floor.frag"
+  ;
   GLuint vs, fs, gs;
 
   CHECK_GL_ERROR(vs = glCreateShader(GL_VERTEX_SHADER));

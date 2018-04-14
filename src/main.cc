@@ -5,6 +5,7 @@
 #include "gui.h"
 #include "render_pass.h"
 #include "floor_renderer.h"
+#include "obj_renderer.h"
 
 #include <algorithm>
 #include <array>
@@ -58,26 +59,31 @@ int main(int argc, char *argv[]) {
   GLFWwindow *window = init_glefw();
   GUI gui(window);
 
+  FloorRenderer floor_renderer;
+  ObjRenderer obj_renderer;
+
   // read in obj file
   std::vector<std::string> args;
   args.assign(argv + 1, argv + argc);
+
   if (!args.empty()) {
+    bool worked = false;
     if (args[0].compare("--obj") == 0 and args.size() == 2) {
-      
+      worked = obj_renderer.load(args[1]);
     }
     else if (args[0].compare("--pmd") == 0 and args.size() == 2) {
+      worked = true;
       // todo 
     }
-    else {
-      std::cerr << "Invalid object loading" << std::endl;
+
+    if (!worked) {
+      std::cerr << "Invalid loading" << std::endl;
       std::cerr << "Usage: '" << argv[0] << " --obj <OBJ file>' or '" << argv[0] << " --pmd <PMD file>'" << std::endl;
       return -1;
     }
   }
 
   MatrixPointers mats; // Define MatrixPointers here for lambda to capture
-
-  FloorRenderer floor_renderer;
   
   while (!glfwWindowShouldClose(window)) {
     // Setup some basic window stuff.
@@ -99,6 +105,7 @@ int main(int argc, char *argv[]) {
 
     // do everything
     floor_renderer.draw(gui.get_projection(), gui.get_view(), glm::vec4(0.0, 20.0, 0.0, 1.0));
+    obj_renderer.draw(gui.get_projection(), gui.get_view(), glm::vec4(0.0, 20.0, 0.0, 1.0));
 
     // Poll and swap.
     glfwPollEvents();

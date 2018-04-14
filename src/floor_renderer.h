@@ -1,3 +1,5 @@
+#ifndef FLOOR_RENDERER_H
+#define FLOOR_RENDERER_H
 #pragma once
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -31,3 +33,4 @@ public:
   FloorRenderer();
   void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
 };
+#endif
