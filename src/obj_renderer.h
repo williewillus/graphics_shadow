@@ -25,7 +25,7 @@ class ObjRenderer {
 public:
   ObjRenderer();
 
-  bool load(std::string file);
+  bool load(const std::string& file);
   void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
 };
 #endif

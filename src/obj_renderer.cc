@@ -49,7 +49,7 @@ ObjRenderer::ObjRenderer() {
   CHECK_GL_ERROR(light_pos_loc = glGetUniformLocation(program, "light_pos"));
 }
 
-bool ObjRenderer::load(std::string file) {
+bool ObjRenderer::load(const std::string& file) {
   std::ifstream fin (file);
   char type;
   int x, y, z;
