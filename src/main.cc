@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     mats = gui.getMatrixPointers();
 
     // do everything
-    floor_renderer.draw(gui.get_view(), glm::vec4(0.0, 20.0, 0.0, 1.0));
+    floor_renderer.draw(gui.get_projection(), gui.get_view(), glm::vec4(0.0, 20.0, 0.0, 1.0));
 
     // Poll and swap.
     glfwPollEvents();

@@ -34,6 +34,7 @@ FloorRenderer::FloorRenderer() {
   glLinkProgram(program);
   CHECK_GL_PROGRAM_ERROR(program);
 
+  CHECK_GL_ERROR(projection_loc = glGetUniformLocation(program, "projection"));
   CHECK_GL_ERROR(view_loc = glGetUniformLocation(program, "view"));
   CHECK_GL_ERROR(light_pos_loc = glGetUniformLocation(program, "light_pos"));
 
@@ -57,12 +58,13 @@ FloorRenderer::FloorRenderer() {
   CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
-void FloorRenderer::draw(const glm::mat4& view, const glm::vec4& light_pos) {
+void FloorRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos) {
   CHECK_GL_ERROR(glBindVertexArray(vao));
   CHECK_GL_ERROR(glUseProgram(program));
 
   // std::cout << "view loc " << view_loc << std::endl;
   // std::cout << "light pos loc " << light_pos_loc << std::endl;
+  CHECK_GL_ERROR(glUniformMatrix4fv(projection_loc, 1, GL_FALSE, &projection[0][0]));
   CHECK_GL_ERROR(glUniformMatrix4fv(view_loc, 1, GL_FALSE, &view[0][0]));
   CHECK_GL_ERROR(glUniform4fv(light_pos_loc, 1, &light_pos[0]));
 

@@ -23,10 +23,11 @@ class FloorRenderer {
 
   GLuint program = -1;
 
+  GLuint projection_loc = -1;
   GLuint view_loc = -1;
   GLuint light_pos_loc = -1;
 
 public:
   FloorRenderer();
-  void draw(const glm::mat4& view, const glm::vec4& light_pos);
+  void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
 };
