@@ -6,6 +6,7 @@
 #include "render_pass.h"
 #include "floor_renderer.h"
 #include "obj_renderer.h"
+#include "shadow_map.h"
 
 #include <algorithm>
 #include <array>
@@ -87,6 +88,7 @@ int main(int argc, char *argv[]) {
 
   FloorRenderer floor_renderer;
   ObjRenderer obj_renderer;
+  ShadowMap shadow_map;
 
   read_args(argc, argv, obj_renderer);
 
@@ -111,8 +113,28 @@ int main(int argc, char *argv[]) {
     mats = gui.getMatrixPointers();
 
     // do everything
-    floor_renderer.draw(gui.get_projection(), gui.get_view(), glm::vec4(0.0, 20.0, 0.0, 1.0));
-    obj_renderer.draw(gui.get_projection(), gui.get_view(), glm::vec4(0.0, 20.0, 0.0, 1.0));
+    glm::vec4 light_pos { 0, 20, 0 , 1 };
+    glm::vec4 light_dir = glm::normalize(glm::vec4(0.5, -0.5, 0.5, 0));
+    glm::mat4 depthMVP(1.0f);
+
+    // capture shadows
+    {
+      auto view = shadow_map.begin_capture(light_pos, light_dir);
+      // save to use in real rendering later
+      depthMVP = gui.get_projection() * view;
+      // render all things that cast shadows to shadow map
+      obj_renderer.drawToShadowMap(gui.get_projection(), view);
+    }
+
+    // clean up
+    CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    CHECK_GL_ERROR(glViewport(0, 0, window_width, window_height));
+    CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
+
+    // draw real scene
+    obj_renderer.draw(gui.get_projection(), gui.get_view(), light_pos);
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, shadow_map.get_depth_texture()));
+    floor_renderer.draw(gui.get_projection(), gui.get_view(), light_pos, depthMVP);
 
     // Poll and swap.
     glfwPollEvents();

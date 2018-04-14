@@ -6,6 +6,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include "shader.h"
 
 class ObjRenderer {
   bool has_object = false;
@@ -16,16 +17,13 @@ class ObjRenderer {
   GLuint vbo;
   GLuint ebo;
 
-  GLuint program = -1;
-
-  GLuint projection_loc = -1;
-  GLuint view_loc = -1;
-  GLuint light_pos_loc = -1;
-
+  ShaderProgram program;
+  ShaderProgram shadow_program;
 public:
   ObjRenderer();
 
   bool load(const std::string& file);
+  void drawToShadowMap(const glm::mat4& projection, const glm::mat4& view);
   void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
 };
 #endif

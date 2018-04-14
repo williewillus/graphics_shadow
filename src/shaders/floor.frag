@@ -1,10 +1,24 @@
 R"zzz(
-#version 330 core
+#version 420 core
 
 in vec4 light_direction;
 in vec3 world_position;
+in vec4 shadowCoord;
 
 out vec4 fragment_color;
+
+uniform sampler2D shadowMap;
+
+bool inShadow(vec4 coord_) {
+  vec3 coord = coord_.xyz / coord_.w;
+  coord = coord * 0.5 + 0.5;
+  if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1) {
+    return false;
+  }
+  float closestDepth = texture(shadowMap, coord.xy).r;
+  float currentDepth = coord.z;
+  return currentDepth > closestDepth;
+}
 
 void main() {
   vec4 gray = vec4(0.97, 0.97, 0.97, 1.0);
@@ -23,6 +37,9 @@ void main() {
           fragment_color = white;
       }
   }
-	// fragment_color = vec4(1.0, 0.0, 0.0, 1.0);
+
+  if (inShadow(shadowCoord)) {
+    fragment_color = 0.5 * vec4(fragment_color.rgb, 1);
+  }
 }
 )zzz"

@@ -14,39 +14,21 @@ ObjRenderer::ObjRenderer() {
   const char* obj_frag = 
   #include "shaders/obj.frag"
   ;
+  const char* shadow_frag =
+  #include "shaders/shadow.frag"
+  ;
 
-  // init shaders
-  GLuint vs, fs, gs;
+  program
+    .addVsh(obj_vert)
+    .addGsh(obj_geom)
+    .addFsh(obj_frag)
+    .build({ "projection", "view", "light_pos" });
 
-  CHECK_GL_ERROR(vs = glCreateShader(GL_VERTEX_SHADER));
-  CHECK_GL_ERROR(glShaderSource(vs, 1, &obj_vert, nullptr));
-  glCompileShader(vs);
-  CHECK_GL_SHADER_ERROR(vs);
-
-  CHECK_GL_ERROR(gs = glCreateShader(GL_GEOMETRY_SHADER));
-  CHECK_GL_ERROR(glShaderSource(gs, 1, &obj_geom, nullptr));
-  glCompileShader(gs);
-  CHECK_GL_SHADER_ERROR(gs);
-
-  CHECK_GL_ERROR(fs = glCreateShader(GL_FRAGMENT_SHADER));
-  CHECK_GL_ERROR(glShaderSource(fs, 1, &obj_frag, nullptr));
-  glCompileShader(fs);
-  CHECK_GL_SHADER_ERROR(fs);
-
-  CHECK_GL_ERROR(program = glCreateProgram());
-  CHECK_GL_ERROR(glAttachShader(program, vs));
-  CHECK_GL_ERROR(glAttachShader(program, gs));
-  CHECK_GL_ERROR(glAttachShader(program, fs));
-
-  CHECK_GL_ERROR(glBindAttribLocation(program, 0, "vertex_pos"));
-  CHECK_GL_ERROR(glBindFragDataLocation(program, 0, "fragment_color"));
-
-  glLinkProgram(program);
-  CHECK_GL_PROGRAM_ERROR(program);
-
-  CHECK_GL_ERROR(projection_loc = glGetUniformLocation(program, "projection"));
-  CHECK_GL_ERROR(view_loc = glGetUniformLocation(program, "view"));
-  CHECK_GL_ERROR(light_pos_loc = glGetUniformLocation(program, "light_pos"));
+  shadow_program
+    .addVsh(obj_vert)
+    .addGsh(obj_geom)
+    .addFsh(shadow_frag)
+    .build({ "projection", "view" });
 }
 
 bool ObjRenderer::load(const std::string& file) {
@@ -96,16 +78,28 @@ bool ObjRenderer::load(const std::string& file) {
   return true;
 }
 
+void ObjRenderer::drawToShadowMap(const glm::mat4& projection, const glm::mat4& view) {
+  if (!has_object) {
+    return;
+  }
+
+  shadow_program.activate();
+  CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
+  CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+  CHECK_GL_ERROR(glBindVertexArray(vao));
+  CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, obj_faces.size() * 3, GL_UNSIGNED_INT, 0));
+}
+
 void ObjRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos) {
   if (!has_object) {
     return;
   }
   CHECK_GL_ERROR(glBindVertexArray(vao));
-  CHECK_GL_ERROR(glUseProgram(program));
+  program.activate();
 
-  CHECK_GL_ERROR(glUniformMatrix4fv(projection_loc, 1, GL_FALSE, &projection[0][0]));
-  CHECK_GL_ERROR(glUniformMatrix4fv(view_loc, 1, GL_FALSE, &view[0][0]));
-  CHECK_GL_ERROR(glUniform4fv(light_pos_loc, 1, &light_pos[0]));
+  CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
+  CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+  CHECK_GL_ERROR(glUniform4fv(program.getUniform("light_pos"), 1, &light_pos[0]));
 
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, obj_faces.size() * 3, GL_UNSIGNED_INT, 0));
 }

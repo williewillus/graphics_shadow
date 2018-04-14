@@ -4,12 +4,14 @@ layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
 uniform mat4 projection;
+uniform mat4 depthMVP;
 
 in vec4 vs_light_direction[];
 in vec3 vs_world_position[];
 
 out vec4 light_direction;
 out vec3 world_position;
+out vec4 shadowCoord;
 
 void main() {
   int n = 0;
@@ -23,6 +25,7 @@ void main() {
     world_position = vs_world_position[n];
     light_direction = normalize(vs_light_direction[n]);
     gl_Position = projection * gl_in[n].gl_Position;
+    shadowCoord = depthMVP * vec4(vs_world_position[n], 1);
     EmitVertex();
   }
   EndPrimitive();
