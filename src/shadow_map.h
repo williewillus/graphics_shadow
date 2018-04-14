@@ -12,8 +12,7 @@ class ShadowMap {
  public:
   ShadowMap();
 
-  // Returns: view matrix for this light
-  glm::mat4 begin_capture(const glm::vec3& light_pos, const glm::vec3& light_dir);
+  void begin_capture();
 
   GLuint get_depth_texture() const { return depth_tex; };
 };

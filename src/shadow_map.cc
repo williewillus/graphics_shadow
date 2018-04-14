@@ -2,7 +2,6 @@
 #include "config.h"
 #include <debuggl.h>
 #include <iostream>
-#include <glm/gtc/matrix_transform.hpp>
 
 ShadowMap::ShadowMap() {
   CHECK_GL_ERROR(glGenFramebuffers(1, &fbo));
@@ -21,12 +20,10 @@ ShadowMap::ShadowMap() {
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
-glm::mat4 ShadowMap::begin_capture(const glm::vec3& light_pos, const glm::vec3& light_dir) {
+void ShadowMap::begin_capture() {
   CHECK_GL_ERROR(glViewport(0, 0, width, height));
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, fbo));
   CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, depth_tex));
   CHECK_GL_ERROR(glClear(GL_DEPTH_BUFFER_BIT));
 
-  glm::vec3 center = light_pos + 0.5f * light_dir;
-  return glm::lookAt(light_pos, center, glm::vec3(0, 1, 0));
 }

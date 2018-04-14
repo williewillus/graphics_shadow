@@ -22,6 +22,7 @@
 #include <glm/gtx/io.hpp>
 #include <glm/gtx/rotate_vector.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 int window_width = 1280;
 int window_height = 720;
@@ -119,7 +120,10 @@ int main(int argc, char *argv[]) {
 
     // capture shadows
     {
-      auto view = shadow_map.begin_capture(light_pos, light_dir);
+      shadow_map.begin_capture();
+      auto center = light_pos + 0.5f * light_dir;
+      auto view = glm::lookAt(glm::vec3(light_pos), glm::vec3(center), glm::vec3(0, 1, 0));
+
       // save to use in real rendering later
       depthMVP = gui.get_projection() * view;
       // render all things that cast shadows to shadow map
