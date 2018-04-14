@@ -55,6 +55,21 @@ GLFWwindow *init_glefw() {
   return ret;
 }
 
+bool read_args(std::vector<std::string> args, ObjRenderer& obj_renderer) {
+  if (args.empty()) 
+    return true;
+
+  bool worked = false;
+  if (args[0].compare("--obj") == 0 and args.size() == 2) {
+    worked = obj_renderer.load(args[1]);
+  }
+  else if (args[0].compare("--pmd") == 0 and args.size() == 2) {
+    worked = true;
+    // todo 
+  }
+  return worked;
+}
+
 int main(int argc, char *argv[]) {
   GLFWwindow *window = init_glefw();
   GUI gui(window);
@@ -66,21 +81,10 @@ int main(int argc, char *argv[]) {
   std::vector<std::string> args;
   args.assign(argv + 1, argv + argc);
 
-  if (!args.empty()) {
-    bool worked = false;
-    if (args[0].compare("--obj") == 0 and args.size() == 2) {
-      worked = obj_renderer.load(args[1]);
-    }
-    else if (args[0].compare("--pmd") == 0 and args.size() == 2) {
-      worked = true;
-      // todo 
-    }
-
-    if (!worked) {
-      std::cerr << "Invalid loading" << std::endl;
-      std::cerr << "Usage: '" << argv[0] << " --obj <OBJ file>' or '" << argv[0] << " --pmd <PMD file>'" << std::endl;
-      return -1;
-    }
+  if (!read_args(args, obj_renderer)) {
+    std::cerr << "Invalid loading" << std::endl;
+    std::cerr << "Usage: '" << argv[0] << " --obj <OBJ file>' or '" << argv[0] << " --pmd <PMD file>'" << std::endl;
+    return -1;
   }
 
   MatrixPointers mats; // Define MatrixPointers here for lambda to capture
