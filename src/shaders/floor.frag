@@ -1,5 +1,5 @@
 R"zzz(
-#version 420 core
+#version 330 core
 
 in vec4 light_direction;
 in vec3 world_position;

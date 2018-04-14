@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 
     // do everything
     glm::vec4 light_pos { 0, 20, 0 , 1 };
-    glm::vec4 light_dir = glm::normalize(glm::vec4(0.5, -0.5, 0.5, 0));
+    glm::vec4 light_dir = glm::normalize(glm::vec4(0.0, -0.1, 0.0, 0));
     glm::mat4 depthMVP(1.0f);
 
     // capture shadows
