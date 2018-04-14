@@ -66,10 +66,10 @@ private:
   float roll_speed_ = M_PI / 64.0f;
   float last_x_ = 0.0f, last_y_ = 0.0f, current_x_ = 0.0f, current_y_ = 0.0f;
   float last_lpress_x_ = -1.0f, last_lpress_y_ = -1.0f;
-  float camera_distance_ = 30.0;
-  float pan_speed_ = 0.1f;
+  float camera_distance_ = 1;
+  float pan_speed_ = 0.01f;
   float rotation_speed_ = 0.02f;
-  float zoom_speed_ = 0.1f;
+  float zoom_speed_ = 0.01f;
   float scroll_speed_ = 5.0f;
   float aspect_;
 

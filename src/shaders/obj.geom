@@ -9,6 +9,7 @@ in vec4 vs_light_direction[];
 in vec3 vs_world_position[];
 
 out vec4 light_direction;
+out vec4 normal;
 out vec3 world_position;
 
 void main() {
@@ -18,6 +19,8 @@ void main() {
   vec3 c = gl_in[2].gl_Position.xyz;
   vec3 u = normalize(b - a);
   vec3 v = normalize(c - a);
+
+  normal = normalize(vec4(normalize(cross(u, v)), 0.0));
 
   for (n = 0; n < gl_in.length(); n++) {
     world_position = vs_world_position[n];
