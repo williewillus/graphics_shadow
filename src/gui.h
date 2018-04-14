@@ -10,6 +10,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <string>
+#include <unordered_map>
 
 struct Mesh;
 
@@ -29,9 +30,9 @@ public:
 
   void assignMesh(Mesh *);
 
-  void keyCallback(int key, int scancode, int action, int mods);
-  void mousePosCallback(double mouse_x, double mouse_y);
-  void mouseButtonCallback(int button, int action, int mods);
+  void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+  void mousePosCallback(GLFWwindow* window, double mouse_x, double mouse_y);
+  void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
   void mouseScrollCallback(double dx, double dy);
   void updateMatrices();
   MatrixPointers getMatrixPointers() const;
@@ -52,6 +53,8 @@ public:
 
   const glm::mat4& get_view()       const { return view_matrix_; }
   const glm::mat4& get_projection() const { return projection_matrix_; }
+
+  void updateMotion();
   
 private:
   GLFWwindow *window_;
@@ -59,7 +62,6 @@ private:
   int window_width_, window_height_;
 
   bool drag_state_ = false;
-  bool fps_mode_ = false;
   int current_button_ = -1;
   float roll_speed_ = M_PI / 64.0f;
   float last_x_ = 0.0f, last_y_ = 0.0f, current_x_ = 0.0f, current_y_ = 0.0f;
@@ -70,6 +72,9 @@ private:
   float zoom_speed_ = 0.1f;
   float scroll_speed_ = 5.0f;
   float aspect_;
+
+  float cumulative_delta_y = 0;
+  static constexpr float MAX_CUMULATIVE_DELTA_Y = 155.0f;
 
   glm::vec3 eye_ = glm::vec3(0.0f, 0.1f, camera_distance_);
   glm::vec3 up_ = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -82,7 +87,10 @@ private:
   glm::mat4 projection_matrix_;
   glm::mat4 model_matrix_ = glm::mat4(1.0f);
 
-  bool captureWASDUPDOWN(int key, int action);
+  std::unordered_map<std::string, bool> pressed_keys;
+
+  void set_key_pressed(const std::string& key, int action);
+  bool captureMovement(int key, int action);
 };
 
 #endif

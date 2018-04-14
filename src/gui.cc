@@ -28,20 +28,25 @@ GUI::GUI(GLFWwindow *window)
 
 GUI::~GUI() {}
 
-void GUI::keyCallback(int key, int scancode, int action, int mods) {
+void GUI::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window_, GL_TRUE);
     return;
   }
 
-  if (mods == 0 && captureWASDUPDOWN(key, action)) {
+  if (key == GLFW_KEY_R && action == GLFW_PRESS) {
+    if (mods == 0) {
+      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    } 
     return;
-  } else if (key == GLFW_KEY_C && action != GLFW_RELEASE) {
-    fps_mode_ = !fps_mode_;
-  } 
+  }
+
+  if (mods == 0 && captureMovement(key, action)) {
+    return;
+  }
 }
 
-void GUI::mousePosCallback(double mouse_x, double mouse_y) {
+void GUI::mousePosCallback(GLFWwindow *window, double mouse_x, double mouse_y) {
   last_x_ = current_x_;
   last_y_ = current_y_;
   current_x_ = mouse_x;
@@ -55,36 +60,53 @@ void GUI::mousePosCallback(double mouse_x, double mouse_y) {
   glm::vec2 mouse_end = glm::vec2(current_x_, current_y_);
   glm::uvec4 viewport = glm::uvec4(0, 0, window_width_, window_height_);
 
-  bool drag_camera = drag_state_ && current_button_ == GLFW_MOUSE_BUTTON_RIGHT;
+  bool move_camera = glfwGetInputMode(window_, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
 
-  if (drag_camera) {
-    glm::vec3 axis = glm::normalize(orientation_ * glm::vec3(mouse_direction.y, -mouse_direction.x, 0.0f));
-    orientation_ = glm::mat3(glm::rotate(rotation_speed_, axis) * glm::mat4(orientation_));
+  if (move_camera) {
+    // prevent looking past straight down or up
+    if (std::abs(cumulative_delta_y + delta_y) < MAX_CUMULATIVE_DELTA_Y) {
+      cumulative_delta_y += delta_y;
+      glm::mat3 y_rotation = glm::mat3(glm::rotate(0.01f * delta_y, glm::vec3(tangent_)));
+      orientation_ = y_rotation * orientation_;
+    }
+
+    glm::mat3 x_rotation = glm::mat3(glm::rotate(-0.01f * delta_x, glm::vec3(0, 1, 0)));
+    orientation_ = x_rotation * orientation_;
+
     tangent_ = glm::column(orientation_, 0);
     up_ = glm::column(orientation_, 1);
     look_ = glm::column(orientation_, 2);
   }
 }
   
-void GUI::mouseButtonCallback(int button, int action, int mods) {
-  drag_state_ = (action == GLFW_PRESS);
-  current_button_ = button;
-  if (action == GLFW_RELEASE) {
-    last_lpress_x_ = -1.0f;
-    last_lpress_y_ = -1.0f;
+void GUI::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+  if (glfwGetInputMode(window, GLFW_CURSOR) != GLFW_CURSOR_DISABLED) {
+    std::cout << "capturing cursor, press R to release" << std::endl;
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   }
 }
 
 void GUI::mouseScrollCallback(double dx, double dy) {
-  scroll += (dy * scroll_speed_); // todo prevent going too far out of bounds
+}
+
+void GUI::updateMotion() {
+  if (pressed_keys["W"])
+    eye_ += zoom_speed_ * look_;
+  if (pressed_keys["S"])
+    eye_ -= zoom_speed_ * look_;
+  if (pressed_keys["D"])
+    eye_ += pan_speed_ * tangent_;
+  if (pressed_keys["A"])
+    eye_ -= pan_speed_ * tangent_;
+  if (pressed_keys["UP"])
+    eye_ += glm::vec3(0, pan_speed_, 0);
+  if (pressed_keys["DOWN"])
+    eye_ -= glm::vec3(0, pan_speed_, 0);
 }
 
 void GUI::updateMatrices() {
   // Compute our view, and projection matrices.
-  if (fps_mode_)
-    center_ = eye_ + camera_distance_ * look_;
-  else
-    eye_ = center_ - camera_distance_ * look_;
+  center_ = eye_ + camera_distance_ * look_;
 
   view_matrix_ = glm::lookAt(eye_, center_, up_);
 
@@ -102,43 +124,35 @@ MatrixPointers GUI::getMatrixPointers() const {
   return ret;
 }
 
-bool GUI::captureWASDUPDOWN(int key, int action) {
+
+void GUI::set_key_pressed(const std::string& key, int action) {
+  if (action == GLFW_PRESS)
+    pressed_keys[key] = true;
+  if (action == GLFW_RELEASE)
+    pressed_keys[key] = false;
+}
+
+bool GUI::captureMovement(int key, int action) {
   if (key == GLFW_KEY_W) {
-    if (fps_mode_)
-      eye_ += zoom_speed_ * look_;
-    else
-      camera_distance_ -= zoom_speed_;
-    return true;
+    set_key_pressed("W", action);
   } else if (key == GLFW_KEY_S) {
-    if (fps_mode_)
-      eye_ -= zoom_speed_ * look_;
-    else
-      camera_distance_ += zoom_speed_;
-    return true;
+    set_key_pressed("S", action);
   } else if (key == GLFW_KEY_A) {
-    if (fps_mode_)
-      eye_ -= pan_speed_ * tangent_;
-    else
-      center_ -= pan_speed_ * tangent_;
-    return true;
+    set_key_pressed("A", action);
   } else if (key == GLFW_KEY_D) {
-    if (fps_mode_)
-      eye_ += pan_speed_ * tangent_;
-    else
-      center_ += pan_speed_ * tangent_;
-    return true;
-  } else if (key == GLFW_KEY_DOWN) {
-    if (fps_mode_)
-      eye_ -= pan_speed_ * up_;
-    else
-      center_ -= pan_speed_ * up_;
-    return true;
+    set_key_pressed("D", action);
   } else if (key == GLFW_KEY_UP) {
-    if (fps_mode_)
-      eye_ += pan_speed_ * up_;
-    else
-      center_ += pan_speed_ * up_;
-    return true;
+    set_key_pressed("UP", action);
+  } else if (key == GLFW_KEY_DOWN) {
+    set_key_pressed("DOWN", action);
+  } else if (key == GLFW_KEY_LEFT or key == GLFW_KEY_RIGHT) {
+    auto rotation = (key == GLFW_KEY_RIGHT) ? roll_speed_ : -roll_speed_;
+    glm::mat3 z_rotation = glm::mat3(glm::rotate(rotation, look_));
+    orientation_ = z_rotation * orientation_;
+
+    tangent_ = glm::column(orientation_, 0);
+    up_ = glm::column(orientation_, 1);
+    look_ = glm::column(orientation_, 2);
   }
   return false;
 }
@@ -147,18 +161,18 @@ bool GUI::captureWASDUPDOWN(int key, int action) {
 void GUI::KeyCallback(GLFWwindow *window, int key, int scancode, int action,
                       int mods) {
   GUI *gui = (GUI *)glfwGetWindowUserPointer(window);
-  gui->keyCallback(key, scancode, action, mods);
+  gui->keyCallback(window, key, scancode, action, mods);
 }
 
 void GUI::MousePosCallback(GLFWwindow *window, double mouse_x, double mouse_y) {
   GUI *gui = (GUI *)glfwGetWindowUserPointer(window);
-  gui->mousePosCallback(mouse_x, mouse_y);
+  gui->mousePosCallback(window, mouse_x, mouse_y);
 }
 
 void GUI::MouseButtonCallback(GLFWwindow *window, int button, int action,
                               int mods) {
   GUI *gui = (GUI *)glfwGetWindowUserPointer(window);
-  gui->mouseButtonCallback(button, action, mods);
+  gui->mouseButtonCallback(window, button, action, mods);
 }
 
 void GUI::MouseScrollCallback(GLFWwindow *window, double dx, double dy) {
