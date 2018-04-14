@@ -58,11 +58,26 @@ int main(int argc, char *argv[]) {
   GLFWwindow *window = init_glefw();
   GUI gui(window);
 
+  // read in obj file
+  std::vector<std::string> args;
+  args.assign(argv + 1, argv + argc);
+  if (!args.empty()) {
+    if (args[0].compare("--obj") == 0 and args.size() == 2) {
+      
+    }
+    else if (args[0].compare("--pmd") == 0 and args.size() == 2) {
+      // todo 
+    }
+    else {
+      std::cerr << "Invalid object loading" << std::endl;
+      std::cerr << "Usage: '" << argv[0] << " --obj <OBJ file>' or '" << argv[0] << " --pmd <PMD file>'" << std::endl;
+      return -1;
+    }
+  }
+
   MatrixPointers mats; // Define MatrixPointers here for lambda to capture
 
   FloorRenderer floor_renderer;
-  std::cout << "camera is at: " << glm::to_string(gui.getCamera()) << std::endl;
-  std::cout << "floor y is at: " << kFloorY << std::endl;
   
   while (!glfwWindowShouldClose(window)) {
     // Setup some basic window stuff.
