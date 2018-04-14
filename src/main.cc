@@ -87,6 +87,56 @@ int main(int argc, char *argv[]) {
   GLFWwindow *window = init_glefw();
   GUI gui(window);
 
+  /* testing stuff begin */
+   auto matrix_binder = [](int loc, const void *data) {
+    glUniformMatrix4fv(loc, 1, GL_FALSE, (const GLfloat *)data);
+  };
+  auto float_binder = [](int loc, const void *data) {
+    glUniform1fv(loc, 1, (const GLfloat *)data);
+  };
+  auto int_binder = [](int loc, const void *data) {
+    glUniform1iv(loc, 1, (const GLint *)data);
+  };
+
+  const char *preview_vertex_shader =
+#include "shaders/preview.vert"
+      ;
+
+  const char *preview_fragment_shader =
+#include "shaders/preview.frag"
+      ;
+
+  std::vector<glm::vec4> preview_verts;
+  std::vector<glm::uvec3> preview_faces;
+  preview_verts.emplace_back(-1, -1, 0, 1);
+  preview_verts.emplace_back(-1, 1, 0, 1);
+  preview_verts.emplace_back(1, -1, 0, 1);
+  preview_verts.emplace_back(1, 1, 0, 1);
+  preview_faces.emplace_back(0, 3, 1);
+  preview_faces.emplace_back(0, 2, 3);
+
+  RenderDataInput preview_pass_input;
+  preview_pass_input.assign(0, "vertex_position", preview_verts.data(),
+                            preview_verts.size(), 4, GL_FLOAT);
+  preview_pass_input.assignIndex(preview_faces.data(), preview_faces.size(), 3);
+  int show_border_val = false;
+  ShaderUniform show_border = {
+      "show_border", int_binder,
+      [&show_border_val]() -> const void * { return &show_border_val; }};
+  glm::mat4 orthomat_val(1.0f);
+  ShaderUniform orthomat = {
+      "orthomat", matrix_binder,
+      [&orthomat_val]() -> const void * { return &orthomat_val[0][0]; }};
+  float frame_shift_val = 0.0f;
+  ShaderUniform frame_shift{
+      "frame_shift", float_binder,
+      [&frame_shift_val]() -> const void * { return &frame_shift_val; }};
+  RenderPass preview_pass(
+      -1, preview_pass_input,
+      {preview_vertex_shader, nullptr, preview_fragment_shader},
+      {show_border, orthomat, frame_shift}, {"fragment_color"});
+  /* testing stuff end */
+
   FloorRenderer floor_renderer;
   ObjRenderer obj_renderer;
   ShadowMap shadow_map;
@@ -139,6 +189,14 @@ int main(int argc, char *argv[]) {
     obj_renderer.draw(gui.get_projection(), gui.get_view(), light_pos);
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, shadow_map.get_depth_texture()));
     floor_renderer.draw(gui.get_projection(), gui.get_view(), light_pos, depthMVP);
+
+    /* testing stuff begin */
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, shadow_map.get_depth_texture()));
+    preview_pass.setup();
+    glViewport(0, 0, 640, 480);
+    CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, preview_faces.size() * 3,
+                                  GL_UNSIGNED_INT, 0));
+    /* testing stuff end */
 
     // Poll and swap.
     glfwPollEvents();
