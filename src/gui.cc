@@ -12,9 +12,8 @@
 
 const double EPSILON = 0.00000001;
 
-GUI::GUI(GLFWwindow *window, int view_width, int view_height,
-         int preview_height)
-    : window_(window), preview_height_(preview_height) {
+GUI::GUI(GLFWwindow *window)
+    : window_(window) {
   glfwSetWindowUserPointer(window_, this);
   glfwSetKeyCallback(window_, KeyCallback);
   glfwSetCursorPosCallback(window_, MousePosCallback);
@@ -22,14 +21,7 @@ GUI::GUI(GLFWwindow *window, int view_width, int view_height,
   glfwSetScrollCallback(window_, MouseScrollCallback);
 
   glfwGetWindowSize(window_, &window_width_, &window_height_);
-  if (view_width < 0 || view_height < 0) {
-    view_width_ = window_width_;
-    view_height_ = window_height_;
-  } else {
-    view_width_ = view_width;
-    view_height_ = view_height;
-  }
-  float aspect_ = static_cast<float>(view_width_) / view_height_;
+  float aspect_ = static_cast<float>(window_width_) / window_height_;
   projection_matrix_ =
       glm::perspective((float)(kFov * (M_PI / 180.0f)), aspect_, kNear, kFar);
 }
@@ -40,15 +32,6 @@ void GUI::keyCallback(int key, int scancode, int action, int mods) {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window_, GL_TRUE);
     return;
-  }
-  if (key == GLFW_KEY_J && action == GLFW_RELEASE) {
-    std::vector<unsigned char> pixels;
-    pixels.resize(3 * view_height_ * view_width_);
-
-    CHECK_GL_ERROR(glReadPixels(0, 0, view_width_, view_height_, GL_RGB,
-                                GL_UNSIGNED_BYTE, pixels.data()));
-    SaveJPEG("./screenshot.jpg", view_width_, view_height_, pixels.data());
-    std::cout << "Saved screenshot to ./screenshot.jpg" << std::endl;
   }
 
   if (mods == 0 && captureWASDUPDOWN(key, action)) {
@@ -67,12 +50,11 @@ void GUI::mousePosCallback(double mouse_x, double mouse_y) {
   float delta_y = current_y_ - last_y_;
   if (sqrt(delta_x * delta_x + delta_y * delta_y) < 1e-15)
     return;
-  if (mouse_x > view_width_)
-    return;
   glm::vec3 mouse_direction = glm::normalize(glm::vec3(delta_x, delta_y, 0.0f));
   glm::vec2 mouse_start = glm::vec2(last_x_, last_y_);
   glm::vec2 mouse_end = glm::vec2(current_x_, current_y_);
-  glm::uvec4 viewport = glm::uvec4(0, 0, view_width_, view_height_);
+  glm::uvec4 viewport = glm::uvec4(0, 0, window_width_, window_height_);
+
 
   bool drag_camera = drag_state_ && current_button_ == GLFW_MOUSE_BUTTON_RIGHT;
 
@@ -97,8 +79,6 @@ void GUI::mouseButtonCallback(int button, int action, int mods) {
 }
 
 void GUI::mouseScrollCallback(double dx, double dy) {
-  if (current_x_ < view_width_)
-    return;
   scroll += (dy * scroll_speed_); // todo prevent going too far out of bounds
 }
 
@@ -111,7 +91,7 @@ void GUI::updateMatrices() {
 
   view_matrix_ = glm::lookAt(eye_, center_, up_);
 
-  aspect_ = static_cast<float>(view_width_) / view_height_;
+  aspect_ = static_cast<float>(window_width_) / window_height_;
   projection_matrix_ =
       glm::perspective((float)(kFov * (M_PI / 180.0f)), aspect_, kNear, kFar);
   model_matrix_ = glm::mat4(1.0f);

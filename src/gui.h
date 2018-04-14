@@ -22,8 +22,7 @@ struct MatrixPointers {
 
 class GUI {
 public:
-  GUI(GLFWwindow *, int view_width = -1, int view_height = -1,
-      int preview_height = -1);
+  GUI(GLFWwindow *window);
   ~GUI();
 
   float scroll = 0.0f;
@@ -58,8 +57,6 @@ private:
   GLFWwindow *window_;
 
   int window_width_, window_height_;
-  int view_width_, view_height_;
-  int preview_height_;
 
   bool drag_state_ = false;
   bool fps_mode_ = false;

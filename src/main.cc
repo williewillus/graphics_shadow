@@ -22,13 +22,7 @@
 
 int window_width = 1280;
 int window_height = 720;
-int main_view_width = 960;
-int main_view_height = 720;
-int preview_width = window_width - main_view_width; // 320
-int preview_height = preview_width / 4 * 3;         // 320 / 4 * 3 = 240
-int preview_bar_width = preview_width;
-int preview_bar_height = main_view_height;
-const std::string window_title = "Minecraft";
+const std::string window_title = "Shadow Final Project";
 
 void ErrorCallback(int error, const char *description) {
   std::cerr << "GLFW Error: " << description << "\n";
@@ -62,7 +56,7 @@ GLFWwindow *init_glefw() {
 
 int main(int argc, char *argv[]) {
   GLFWwindow *window = init_glefw();
-  GUI gui(window, main_view_width, main_view_height, preview_height);
+  GUI gui(window);
 
   MatrixPointers mats; // Define MatrixPointers here for lambda to capture
 
@@ -71,7 +65,7 @@ int main(int argc, char *argv[]) {
   while (!glfwWindowShouldClose(window)) {
     // Setup some basic window stuff.
     glfwGetFramebufferSize(window, &window_width, &window_height);
-    glViewport(0, 0, main_view_width, main_view_height);
+    glViewport(0, 0, window_width, window_height);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
