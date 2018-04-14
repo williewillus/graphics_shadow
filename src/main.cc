@@ -61,6 +61,8 @@ int main(int argc, char *argv[]) {
   MatrixPointers mats; // Define MatrixPointers here for lambda to capture
 
   FloorRenderer floor_renderer;
+  std::cout << "camera is at: " << glm::to_string(gui.getCamera()) << std::endl;
+  std::cout << "floor y is at: " << kFloorY << std::endl;
   
   while (!glfwWindowShouldClose(window)) {
     // Setup some basic window stuff.

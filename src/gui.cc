@@ -55,14 +55,11 @@ void GUI::mousePosCallback(double mouse_x, double mouse_y) {
   glm::vec2 mouse_end = glm::vec2(current_x_, current_y_);
   glm::uvec4 viewport = glm::uvec4(0, 0, window_width_, window_height_);
 
-
   bool drag_camera = drag_state_ && current_button_ == GLFW_MOUSE_BUTTON_RIGHT;
 
   if (drag_camera) {
-    glm::vec3 axis = glm::normalize(
-        orientation_ * glm::vec3(mouse_direction.y, -mouse_direction.x, 0.0f));
-    orientation_ =
-        glm::mat3(glm::rotate(rotation_speed_, axis) * glm::mat4(orientation_));
+    glm::vec3 axis = glm::normalize(orientation_ * glm::vec3(mouse_direction.y, -mouse_direction.x, 0.0f));
+    orientation_ = glm::mat3(glm::rotate(rotation_speed_, axis) * glm::mat4(orientation_));
     tangent_ = glm::column(orientation_, 0);
     up_ = glm::column(orientation_, 1);
     look_ = glm::column(orientation_, 2);
