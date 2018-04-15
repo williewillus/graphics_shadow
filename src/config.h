@@ -16,11 +16,11 @@ const float kFov = 45.0f;
 
 // Floor info.
 const float kFloorEps = 0.5 * (0.025 + 0.0175);
-const float kFloorXMin = -3.0f;
-const float kFloorXMax = 3.0f;
-const float kFloorZMin = -3.0f;
-const float kFloorZMax = 3.0f;
-const float kFloorY = -0.75617 - kFloorEps;
+const float kFloorXMin = -4.0f;
+const float kFloorXMax = 4.0f;
+const float kFloorZMin = -4.0f;
+const float kFloorZMax = 4.0f;
+const float kFloorY = -1.0f;
 
 const float kScrollSpeed = 64.0f;
 
