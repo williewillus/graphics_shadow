@@ -21,8 +21,8 @@ void main()
     if (d_x < 0.02 || d_y < 0.02) {
     	fragment_color = vec4(0.0, 0.0, 1.0, 0.3);
     } else {
-      float depthValue = texture(depth_map, tex_coord).r;
-      fragment_color = vec4(vec3(linearize_depth(depthValue) / far_plane), 1.0); // perspective
+      float depth_value = texture(depth_map, tex_coord).r;
+      fragment_color = vec4(vec3(linearize_depth(depth_value) / far_plane), 1.0); // perspective
     }
 }  
 )zzz"
