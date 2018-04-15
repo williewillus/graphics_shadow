@@ -156,17 +156,17 @@ int main(int argc, char *argv[]) {
     CHECK_GL_ERROR(glViewport(0, 0, window_width, window_height));
     CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
 
-    // draw real scene
+    // draw object
     obj_renderer.draw(gui.get_projection(), gui.get_view(), light_pos);
 
+    // draw floor
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, shadow_map.get_depth_texture()));
     floor_renderer.draw(gui.get_projection(), gui.get_view(), light_pos, depthMVP);
 
-    /* testing stuff begin */
+    // draw preview
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, shadow_map.get_depth_texture()));
     glViewport(5, 5, 640, 480);
     preview_renderer.draw();
-    /* testing stuff end */
 
     // Poll and swap.
     glfwPollEvents();
