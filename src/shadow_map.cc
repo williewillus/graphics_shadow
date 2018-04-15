@@ -25,5 +25,4 @@ void ShadowMap::begin_capture() {
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, fbo));
   CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, depth_tex));
   CHECK_GL_ERROR(glClear(GL_DEPTH_BUFFER_BIT));
-
 }

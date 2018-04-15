@@ -119,22 +119,11 @@ int main(int argc, char *argv[]) {
   preview_pass_input.assign(0, "vertex_position", preview_verts.data(),
                             preview_verts.size(), 4, GL_FLOAT);
   preview_pass_input.assignIndex(preview_faces.data(), preview_faces.size(), 3);
-  int show_border_val = false;
-  ShaderUniform show_border = {
-      "show_border", int_binder,
-      [&show_border_val]() -> const void * { return &show_border_val; }};
-  glm::mat4 orthomat_val(1.0f);
-  ShaderUniform orthomat = {
-      "orthomat", matrix_binder,
-      [&orthomat_val]() -> const void * { return &orthomat_val[0][0]; }};
-  float frame_shift_val = 0.0f;
-  ShaderUniform frame_shift{
-      "frame_shift", float_binder,
-      [&frame_shift_val]() -> const void * { return &frame_shift_val; }};
+
   RenderPass preview_pass(
       -1, preview_pass_input,
       {preview_vertex_shader, nullptr, preview_fragment_shader},
-      {show_border, orthomat, frame_shift}, {"fragment_color"});
+      {}, { "fragment_color" });
   /* testing stuff end */
 
   FloorRenderer floor_renderer;
@@ -164,8 +153,8 @@ int main(int argc, char *argv[]) {
     mats = gui.getMatrixPointers();
 
     // do everything
-    glm::vec4 light_pos { 0, 20, 0 , 1 };
-    glm::vec4 light_dir = glm::normalize(glm::vec4(0.0, -0.1, 0.0, 0));
+    glm::vec4 light_pos { 0, 3, 3 , 1 };
+    glm::vec4 light_dir = glm::normalize(glm::vec4(0.0, -1.0, -1.0, 0));
     glm::mat4 depthMVP(1.0f);
 
     // capture shadows
@@ -187,6 +176,7 @@ int main(int argc, char *argv[]) {
 
     // draw real scene
     obj_renderer.draw(gui.get_projection(), gui.get_view(), light_pos);
+
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, shadow_map.get_depth_texture()));
     floor_renderer.draw(gui.get_projection(), gui.get_view(), light_pos, depthMVP);
 
@@ -194,8 +184,7 @@ int main(int argc, char *argv[]) {
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, shadow_map.get_depth_texture()));
     preview_pass.setup();
     glViewport(0, 0, 640, 480);
-    CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, preview_faces.size() * 3,
-                                  GL_UNSIGNED_INT, 0));
+    CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, preview_faces.size() * 3, GL_UNSIGNED_INT, 0));
     /* testing stuff end */
 
     // Poll and swap.
