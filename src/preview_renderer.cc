@@ -1,0 +1,45 @@
+#include "preview_renderer.h"
+#include <iostream>
+#include <debuggl.h>
+#include <glm/ext.hpp>
+
+PreviewRenderer::PreviewRenderer() {
+  // init shaders
+  const char* preview_vert = 
+  #include "shaders/preview.vert"
+  ;
+  const char* preview_frag = 
+  #include "shaders/preview.frag"
+  ;
+
+  program
+    .addVsh(preview_vert)
+    .addFsh(preview_frag)
+    .build({});
+
+  // init VAO/VBO/EBO and upload data
+  CHECK_GL_ERROR(glGenVertexArrays(1, &vao));
+  CHECK_GL_ERROR(glBindVertexArray(vao));
+
+  CHECK_GL_ERROR(glGenBuffers(1, &vbo));
+  CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, vbo));
+  CHECK_GL_ERROR(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 3, &PREVIEW_VERTICES[0], GL_STATIC_DRAW));
+
+  CHECK_GL_ERROR(glGenBuffers(1, &ebo));
+  CHECK_GL_ERROR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo));
+  CHECK_GL_ERROR(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * 2 * 3, &PREVIEW_FACES[0], GL_STATIC_DRAW));
+
+  CHECK_GL_ERROR(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr));
+  CHECK_GL_ERROR(glEnableVertexAttribArray(0));
+
+  // cleanup
+  CHECK_GL_ERROR(glBindVertexArray(0));
+  CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
+void PreviewRenderer::draw() {
+  CHECK_GL_ERROR(glBindVertexArray(vao));
+
+  program.activate();
+  CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
+}
