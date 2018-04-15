@@ -41,12 +41,15 @@ FloorRenderer::FloorRenderer() {
   CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
+void FloorRenderer::draw_shadow() {
+  CHECK_GL_ERROR(glBindVertexArray(vao));
+  CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
+}
+
 void FloorRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos, const glm::mat4& depthMVP) {
   CHECK_GL_ERROR(glBindVertexArray(vao));
 
   program.activate();
-  // std::cout << "view loc " << view_loc << std::endl;
-  // std::cout << "light pos loc " << light_pos_loc << std::endl;
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("depthMVP"), 1, GL_FALSE, &depthMVP[0][0]));

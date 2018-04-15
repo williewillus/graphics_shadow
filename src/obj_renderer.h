@@ -18,12 +18,11 @@ class ObjRenderer {
   GLuint ebo;
 
   ShaderProgram program;
-  ShaderProgram shadow_program;
 public:
   ObjRenderer();
 
   bool load(const std::string& file);
-  void drawToShadowMap(const glm::mat4& projection, const glm::mat4& view);
   void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
+  void draw_shadow();
 };
 #endif

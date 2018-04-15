@@ -88,8 +88,17 @@ int main(int argc, char *argv[]) {
   GLFWwindow *window = init_glefw();
   GUI gui(window);
 
-  /* testing stuff begin */
-  /* testing stuff end */
+  const char* shadow_vert =
+  #include "shaders/shadow.vert"
+  ;
+  const char* shadow_frag =
+  #include "shaders/shadow.frag"
+  ;
+  ShaderProgram shadow_program;
+  shadow_program
+    .addVsh(shadow_vert)
+    .addFsh(shadow_frag)
+    .build({ "projection", "view" });
 
   FloorRenderer floor_renderer;
   ObjRenderer obj_renderer;
@@ -131,8 +140,15 @@ int main(int argc, char *argv[]) {
 
       // save to use in real rendering later
       depthMVP = gui.get_projection() * view;
+
       // render all things that cast shadows to shadow map
-      obj_renderer.drawToShadowMap(gui.get_projection(), view);
+      shadow_program.activate();
+
+      CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
+      CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+
+      obj_renderer.draw_shadow();
+      floor_renderer.draw_shadow();
     }
 
     // clean up

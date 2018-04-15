@@ -14,21 +14,12 @@ ObjRenderer::ObjRenderer() {
   const char* obj_frag = 
   #include "shaders/obj.frag"
   ;
-  const char* shadow_frag =
-  #include "shaders/shadow.frag"
-  ;
 
   program
     .addVsh(obj_vert)
     .addGsh(obj_geom)
     .addFsh(obj_frag)
     .build({ "projection", "view", "light_pos" });
-
-  shadow_program
-    .addVsh(obj_vert)
-    .addGsh(obj_geom)
-    .addFsh(shadow_frag)
-    .build({ "projection", "view" });
 }
 
 bool ObjRenderer::load(const std::string& file) {
@@ -78,17 +69,12 @@ bool ObjRenderer::load(const std::string& file) {
   return true;
 }
 
-void ObjRenderer::drawToShadowMap(const glm::mat4& projection, const glm::mat4& view) {
+void ObjRenderer::draw_shadow() {
   if (!has_object) {
     return;
   }
 
   CHECK_GL_ERROR(glBindVertexArray(vao));
-  shadow_program.activate();
-  
-  CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
-  CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
-
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, obj_faces.size() * 3, GL_UNSIGNED_INT, 0));
 }
 

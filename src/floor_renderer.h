@@ -28,5 +28,6 @@ class FloorRenderer {
 public:
   FloorRenderer();
   void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos, const glm::mat4& depthMVP);
+  void draw_shadow();
 };
 #endif

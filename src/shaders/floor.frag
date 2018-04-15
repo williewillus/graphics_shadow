@@ -15,9 +15,10 @@ bool inShadow(vec4 coord_) {
   if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1) {
     return false;
   }
+  float bias = 0.005;
   float closestDepth = texture(shadowMap, coord.xy).r;
   float currentDepth = coord.z;
-  return currentDepth > closestDepth;
+  return currentDepth - bias > closestDepth;
 }
 
 void main() {
