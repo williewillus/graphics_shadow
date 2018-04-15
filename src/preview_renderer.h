@@ -23,5 +23,5 @@ class PreviewRenderer {
   ShaderProgram program;
 public:
   PreviewRenderer();
-  void draw();
+  void draw(const float& kNear, const float& kFar);
 };

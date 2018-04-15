@@ -15,7 +15,7 @@ PreviewRenderer::PreviewRenderer() {
   program
     .addVsh(preview_vert)
     .addFsh(preview_frag)
-    .build({});
+    .build({ "near_plane", "far_plane" });
 
   // init VAO/VBO/EBO and upload data
   CHECK_GL_ERROR(glGenVertexArrays(1, &vao));
@@ -37,9 +37,12 @@ PreviewRenderer::PreviewRenderer() {
   CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
-void PreviewRenderer::draw() {
+void PreviewRenderer::draw(const float& kNear, const float& kFar) {
   CHECK_GL_ERROR(glBindVertexArray(vao));
-
   program.activate();
+
+  CHECK_GL_ERROR(glUniform1fv(program.getUniform("near_plane"), 1, &kNear));
+  CHECK_GL_ERROR(glUniform1fv(program.getUniform("far_plane"), 1, &kFar));
+
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
 }

@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
     // draw preview
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, shadow_map.get_depth_texture()));
     glViewport(5, 5, 640, 480);
-    preview_renderer.draw();
+    preview_renderer.draw(kNear, kFar);
 
     // Poll and swap.
     glfwPollEvents();
