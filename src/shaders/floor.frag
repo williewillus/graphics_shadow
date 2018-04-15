@@ -3,22 +3,22 @@ R"zzz(
 
 in vec4 light_direction;
 in vec3 world_position;
-in vec4 shadowCoord;
+in vec4 shadow_coord;
 
 out vec4 fragment_color;
 
-uniform sampler2D shadowMap;
+uniform sampler2D shadow_map;
 
-bool inShadow(vec4 coord_) {
+bool in_shadow(vec4 coord_) {
   vec3 coord = coord_.xyz / coord_.w;
   coord = coord * 0.5 + 0.5;
   if (coord.x < 0 || coord.x > 1 || coord.y < 0 || coord.y > 1) {
     return false;
   }
   float bias = 0.005;
-  float closestDepth = texture(shadowMap, coord.xy).r;
-  float currentDepth = coord.z;
-  return currentDepth - bias > closestDepth;
+  float closest_depth = texture(shadow_map, coord.xy).r;
+  float current_depth = coord.z;
+  return current_depth - bias > closest_depth;
 }
 
 void main() {
@@ -39,7 +39,7 @@ void main() {
       }
   }
 
-  if (inShadow(shadowCoord)) {
+  if (in_shadow(shadow_coord)) {
     fragment_color = 0.5 * vec4(fragment_color.rgb, 1);
   }
 }

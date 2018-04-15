@@ -3,7 +3,7 @@ out vec4 fragment_color;
   
 in vec2 tex_coord;
 
-uniform sampler2D depthMap;
+uniform sampler2D depth_map;
 uniform float near_plane;
 uniform float far_plane;
 
@@ -21,7 +21,7 @@ void main()
     if (d_x < 0.02 || d_y < 0.02) {
     	fragment_color = vec4(0.0, 0.0, 1.0, 0.3);
     } else {
-      float depthValue = texture(depthMap, tex_coord).r;
+      float depthValue = texture(depth_map, tex_coord).r;
       fragment_color = vec4(vec3(linearize_depth(depthValue) / far_plane), 1.0); // perspective
     }
 }  

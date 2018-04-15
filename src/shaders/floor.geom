@@ -11,7 +11,7 @@ in vec3 vs_world_position[];
 
 out vec4 light_direction;
 out vec3 world_position;
-out vec4 shadowCoord;
+out vec4 shadow_coord;
 
 void main() {
   int n = 0;
@@ -25,7 +25,7 @@ void main() {
     world_position = vs_world_position[n];
     light_direction = normalize(vs_light_direction[n]);
     gl_Position = projection * gl_in[n].gl_Position;
-    shadowCoord = depthMVP * vec4(vs_world_position[n], 1);
+    shadow_coord = depthMVP * vec4(vs_world_position[n], 1);
     EmitVertex();
   }
   EndPrimitive();
