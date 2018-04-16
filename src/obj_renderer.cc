@@ -3,6 +3,8 @@
 #include <fstream>
 #include <debuggl.h>
 #include <glm/ext.hpp>
+#include <unordered_map>
+#include <utility>
 
 ObjRenderer::ObjRenderer() {
   const char* obj_vert = 
@@ -20,6 +22,17 @@ ObjRenderer::ObjRenderer() {
     .addGsh(obj_geom)
     .addFsh(obj_frag)
     .build({ "projection", "view", "light_pos" });
+}
+
+// Return vertex index opposite to given face
+static unsigned opposite(const glm::uvec3& face, const Edge& e) {
+  for (unsigned i = 0; i < 3; i++) {
+    if (face[i] != e.a && face[i] != e.b) {
+      return face[i];
+    }
+  }
+
+  throw std::runtime_error("impossible");
 }
 
 bool ObjRenderer::load(const std::string& file) {
@@ -42,6 +55,50 @@ bool ObjRenderer::load(const std::string& file) {
       obj_vertices.clear();
       obj_faces.clear();
       return false;
+    }
+  }
+
+  // build edge -> two face idxs sharing it
+  std::unordered_map<Edge, std::pair<unsigned, unsigned>> edge_to_face;
+  for (unsigned i = 0; i < obj_faces.size(); i++) {
+    const auto& face = obj_faces[i];
+    for (unsigned j = 0; j < 3; j++) {
+      Edge e { face[j], face[(j+1) % 3] };
+      auto it = edge_to_face.find(e);
+
+      if (it == edge_to_face.cend()) {
+	edge_to_face[e] = std::make_pair(i, -1);
+      } else if (it->second.second != -1) {
+	throw std::runtime_error("more than two faces sharing an edge??");
+      } else {
+	it->second.second = i;
+      }
+    }
+  }
+
+  // If any edge has only 1 face, the mesh is not closed properly (TODO handle this smartly?)
+  for (const auto& entry : edge_to_face) {
+    if (entry.second.second == -1) {
+      throw std::runtime_error("non-closed mesh");
+    }
+  }
+
+  // calculate final ebo values
+  std::vector<unsigned> adjacency_idxs(obj_faces.size() * 3 * 3);
+  for (unsigned i = 0; i < obj_faces.size(); i++) {
+    const auto& face = obj_faces[i];
+    for (unsigned j = 0; j < 3; j++) {
+      Edge e { face[j], face[(j+1) % 3] };
+
+      // Actual triangle vertex idx
+      adjacency_idxs.push_back(face[j]);
+
+      // Adjacent triangle vertex idx
+      auto pair = edge_to_face.at(e);
+      auto adjacent_face_idx = pair.first == i ? pair.second : pair.first;
+      auto adjacent_face = obj_faces.at(adjacent_face_idx);
+      auto opposite_vertex_idx = opposite(adjacent_face, e);
+      adjacency_idxs.push_back(opposite_vertex_idx);
     }
   }
 
