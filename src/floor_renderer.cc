@@ -46,14 +46,21 @@ void FloorRenderer::draw_shadow() {
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
 }
 
-void FloorRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos, const glm::mat4& depthMVP) {
+void FloorRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos, const std::array<glm::mat4, NUM_LIGHTS>& depthMVP) {
   CHECK_GL_ERROR(glBindVertexArray(vao));
 
   program.activate();
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
-  CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("depthMVP"), 1, GL_FALSE, &depthMVP[0][0]));
   CHECK_GL_ERROR(glUniform4fv(program.getUniform("light_pos"), 1, &light_pos[0]));
+  for (unsigned i = 0; i < depthMVP.size(); i++) {
+    std::string loc_name = "depthMVP[";
+    loc_name += std::to_string(i);
+    loc_name += "]";
+
+    auto loc = program.get_uniform_direct(loc_name);
+    CHECK_GL_ERROR(glUniformMatrix4fv(loc, 1, GL_FALSE, &depthMVP[i][0][0]));
+  }
 
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
 }

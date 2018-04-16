@@ -18,6 +18,7 @@ public:
     // Using
     void activate();
     GLuint getUniform(const std::string& name) const;
+    GLuint get_uniform_direct(const std::string& name) const; // todo rename me
 private:
     GLuint program_id = 0;
     std::unordered_map<std::string, GLuint> uniforms_locations;

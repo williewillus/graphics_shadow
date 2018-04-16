@@ -81,3 +81,9 @@ void ShaderProgram::activate() {
 GLuint ShaderProgram::getUniform(const std::string& name) const {
     return uniforms_locations.at(name);
 }
+
+GLuint ShaderProgram::get_uniform_direct(const std::string& name) const {
+  GLuint ret;
+  CHECK_GL_ERROR(ret = glGetUniformLocation(program_id, name.c_str()));
+  return ret;
+}

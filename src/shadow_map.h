@@ -4,15 +4,12 @@
 #include <vector>
 
 class ShadowMap {
-  static constexpr int SHADOWMAP_TEXTURE_UNIT = 14;
   GLuint fbo;
-  GLuint depth_tex;
-  const GLuint width = 2048;
-  const GLuint height = 2048;
  public:
-  ShadowMap();
+  static constexpr GLuint WIDTH = 2048;
+  static constexpr GLuint HEIGHT = 2048;
+  
+  ShadowMap(GLuint depth_tex_, GLuint layer);
 
   void begin_capture();
-
-  GLuint get_depth_texture() const { return depth_tex; };
 };

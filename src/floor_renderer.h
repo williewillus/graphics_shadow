@@ -1,6 +1,7 @@
 #ifndef FLOOR_RENDERER_H
 #define FLOOR_RENDERER_H
 #pragma once
+#include <array>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include "config.h"
@@ -27,7 +28,7 @@ class FloorRenderer {
   ShaderProgram program;
 public:
   FloorRenderer();
-  void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos, const glm::mat4& depthMVP);
+  void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos, const std::array<glm::mat4, NUM_LIGHTS>& depthMVP);
   void draw_shadow();
 };
 #endif

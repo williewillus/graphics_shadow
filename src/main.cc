@@ -84,6 +84,15 @@ void read_args(int argc, char *argv[], ObjRenderer& obj_renderer) {
   }
 }
 
+static std::array<glm::vec4, NUM_LIGHTS> light_positions = {
+  glm::vec4 { 0.0f, 3.0f, 3.0f, 1.0f },
+  glm::vec4 { 0.0f, -3.0f, -3.0f, 1.0f },
+};
+static std::array<glm::vec4, NUM_LIGHTS> light_directions = {
+  glm::normalize(glm::vec4(0.0, -1.0, -1.0, 0)),
+  glm::normalize(glm::vec4(0.0, -1.0, 1.0, 0)),
+};
+
 int main(int argc, char *argv[]) {
   GLFWwindow *window = init_glefw();
   GUI gui(window);
@@ -103,9 +112,21 @@ int main(int argc, char *argv[]) {
   FloorRenderer floor_renderer;
   ObjRenderer obj_renderer;
   PreviewRenderer preview_renderer;
-  ShadowMap shadow_map;
-
   read_args(argc, argv, obj_renderer);
+
+  GLuint depth_tex;
+  CHECK_GL_ERROR(glGenTextures(1, &depth_tex));
+  CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
+  CHECK_GL_ERROR(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT16, ShadowMap::WIDTH, ShadowMap::HEIGHT, NUM_LIGHTS));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE));
+  
+  std::array<ShadowMap, NUM_LIGHTS> shadow_maps {
+    ShadowMap(depth_tex, 0),
+    ShadowMap(depth_tex, 1),
+  };
 
   MatrixPointers mats; // Define MatrixPointers here for lambda to capture
   
@@ -128,22 +149,20 @@ int main(int argc, char *argv[]) {
     mats = gui.getMatrixPointers();
 
     // do everything
-    glm::vec4 light_pos { 0, 3, 3 , 1 };
-    glm::vec4 light_dir = glm::normalize(glm::vec4(0.0, -1.0, -1.0, 0));
-    glm::mat4 depthMVP(1.0f);
 
     // capture shadows
-    {
-      shadow_map.begin_capture();
-      auto center = light_pos + 0.5f * light_dir;
-      auto view = glm::lookAt(glm::vec3(light_pos), glm::vec3(center), glm::vec3(0, 1, 0));
+    std::array<glm::mat4, NUM_LIGHTS> depthMVP;
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
+    shadow_program.activate();
+    for (unsigned i = 0; i < NUM_LIGHTS; i++) {
+      shadow_maps.at(i).begin_capture();
+      auto center = light_positions.at(i) + 0.5f * light_directions.at(i);
+      auto view = glm::lookAt(glm::vec3(light_positions.at(i)), glm::vec3(center), glm::vec3(0, 1, 0));
 
       // save to use in real rendering later
-      depthMVP = gui.get_projection() * view;
+      depthMVP.at(i) = gui.get_projection() * view;
 
       // render all things that cast shadows to shadow map
-      shadow_program.activate();
-
       CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
       CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
 
@@ -157,16 +176,16 @@ int main(int argc, char *argv[]) {
     CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
 
     // draw object
-    obj_renderer.draw(gui.get_projection(), gui.get_view(), light_pos);
+    obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions.at(0));
 
     // draw floor
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, shadow_map.get_depth_texture()));
-    floor_renderer.draw(gui.get_projection(), gui.get_view(), light_pos, depthMVP);
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
+    floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions.at(0), depthMVP);
 
     // draw preview
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, shadow_map.get_depth_texture()));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
     glViewport(5, 5, 640, 480);
-    preview_renderer.draw(kNear, kFar);
+    preview_renderer.draw(kNear, kFar, gui.get_current_preview());
 
     // Poll and swap.
     glfwPollEvents();

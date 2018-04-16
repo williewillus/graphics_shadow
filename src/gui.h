@@ -53,6 +53,7 @@ public:
 
   const glm::mat4& get_view()       const { return view_matrix_; }
   const glm::mat4& get_projection() const { return projection_matrix_; }
+  const unsigned get_current_preview() const { return current_preview; }
 
   void updateMotion();
   
@@ -61,6 +62,7 @@ private:
 
   int window_width_, window_height_;
 
+  unsigned current_preview = 0;
   bool drag_state_ = false;
   int current_button_ = -1;
   float roll_speed_ = M_PI / 64.0f;

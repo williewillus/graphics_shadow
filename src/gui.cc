@@ -39,6 +39,12 @@ void GUI::keyCallback(GLFWwindow* window, int key, int scancode, int action, int
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     } 
     return;
+  } else if (key == GLFW_KEY_M && action == GLFW_PRESS) {
+    current_preview = (current_preview + 1) % NUM_LIGHTS;
+    std::cout << "Now previewing shadow map " << current_preview << std::endl;
+  } else if (key == GLFW_KEY_N && action == GLFW_PRESS) {
+    current_preview = (current_preview - 1) % NUM_LIGHTS;
+    std::cout << "Now previewing shadow map " << current_preview << std::endl;
   }
 
   if (mods == 0 && captureMovement(key, action)) {

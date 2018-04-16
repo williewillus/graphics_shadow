@@ -23,5 +23,6 @@ const float kFloorZMax = 4.0f;
 const float kFloorY = -1.0f;
 
 const float kScrollSpeed = 64.0f;
+constexpr unsigned NUM_LIGHTS = 2;
 
 #endif

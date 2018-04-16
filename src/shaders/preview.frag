@@ -3,9 +3,10 @@ out vec4 fragment_color;
   
 in vec2 tex_coord;
 
-uniform sampler2D depth_map;
+uniform sampler2DArray depth_map;
 uniform float near_plane;
 uniform float far_plane;
+uniform int idx;
 
 // https://learnopengl.com/Advanced-Lighting/Shadows/Shadow-Mapping
 float linearize_depth(float depth)
@@ -21,7 +22,7 @@ void main()
     if (d_x < 0.02 || d_y < 0.02) {
     	fragment_color = vec4(0.0, 0.0, 1.0, 0.3);
     } else {
-      float depth_value = texture(depth_map, tex_coord).r;
+      float depth_value = texture(depth_map, vec3(tex_coord, float(idx))).r;
       fragment_color = vec4(vec3(linearize_depth(depth_value) / far_plane), 1.0); // perspective
     }
 }  
