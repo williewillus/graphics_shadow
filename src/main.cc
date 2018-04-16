@@ -86,7 +86,7 @@ void read_args(int argc, char *argv[], ObjRenderer& obj_renderer) {
 
 static std::array<glm::vec4, NUM_LIGHTS> light_positions = {
   glm::vec4 { 0.0f, 3.0f, 3.0f, 1.0f },
-  glm::vec4 { 0.0f, -3.0f, -3.0f, 1.0f },
+  glm::vec4 { 0.0f, 3.0f, -3.0f, 1.0f },
 };
 static std::array<glm::vec4, NUM_LIGHTS> light_directions = {
   glm::normalize(glm::vec4(0.0, -1.0, -1.0, 0)),
