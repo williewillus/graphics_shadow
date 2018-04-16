@@ -79,12 +79,12 @@ bool ObjRenderer::load(const std::string& file) {
   // If any edge has only 1 face, the mesh is not closed properly (TODO handle this smartly?)
   for (const auto& entry : edge_to_face) {
     if (entry.second.second == -1) {
-      throw std::runtime_error("non-closed mesh");
+      throw std::runtime_error("non-closed mesh, can't build adjacencies");
     }
   }
 
   // calculate final ebo values
-  std::vector<unsigned> adjacency_idxs(obj_faces.size() * 3 * 3);
+  std::vector<unsigned> adjacency_idxs(obj_faces.size() * 3 * 2); // each vertex also comes with adjacent vertex, so double
   for (unsigned i = 0; i < obj_faces.size(); i++) {
     const auto& face = obj_faces[i];
     for (unsigned j = 0; j < 3; j++) {
@@ -106,6 +106,7 @@ bool ObjRenderer::load(const std::string& file) {
   CHECK_GL_ERROR(glGenVertexArrays(1, &vao));
   CHECK_GL_ERROR(glBindVertexArray(vao));
 
+  GLuint vbo, ebo;
   CHECK_GL_ERROR(glGenBuffers(1, &vbo));
   CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, vbo));
   CHECK_GL_ERROR(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * obj_vertices.size() * 3, obj_vertices.data(), GL_STATIC_DRAW));
