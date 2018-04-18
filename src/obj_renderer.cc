@@ -96,7 +96,8 @@ bool ObjRenderer::load(const std::string& file) {
   }
 
   // calculate final ebo values
-  std::vector<unsigned> adjacency_idxs(obj_faces.size() * 3 * 2); // each vertex also comes with adjacent vertex, so double
+  std::vector<unsigned> adjacency_idxs;
+  adjacency_idxs.reserve(obj_faces.size() * 3 * 2); // each vertex also comes with adjacent vertex, so double
   for (unsigned i = 0; i < obj_faces.size(); i++) {
     const auto& face = obj_faces[i];
     for (unsigned j = 0; j < 3; j++) {
