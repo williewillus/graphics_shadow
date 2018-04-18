@@ -40,8 +40,10 @@ class ObjRenderer {
   std::vector<glm::uvec3> obj_faces;
 
   GLuint vao;
+  GLuint silhouette_vao;
 
   ShaderProgram program;
+  ShaderProgram silhouette_program;
 public:
   ObjRenderer();
 

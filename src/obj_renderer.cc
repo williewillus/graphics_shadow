@@ -16,11 +16,23 @@ ObjRenderer::ObjRenderer() {
   const char* obj_frag = 
   #include "shaders/obj.frag"
   ;
+  const char* silhouette_geom =
+  #include "shaders/silhouette.geom"
+  ;
+  const char* silhouette_frag =
+  #include "shaders/silhouette.frag"
+  ;
 
   program
     .addVsh(obj_vert)
     .addGsh(obj_geom)
     .addFsh(obj_frag)
+    .build({ "projection", "view", "light_pos" });
+
+  silhouette_program
+    .addVsh(obj_vert)
+    .addGsh(silhouette_geom)
+    .addFsh(silhouette_frag)
     .build({ "projection", "view", "light_pos" });
 }
 
@@ -118,6 +130,19 @@ bool ObjRenderer::load(const std::string& file) {
   CHECK_GL_ERROR(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr));
   CHECK_GL_ERROR(glEnableVertexAttribArray(0));
 
+  // Make another for silhouette
+  CHECK_GL_ERROR(glGenVertexArrays(1, &silhouette_vao));
+  CHECK_GL_ERROR(glBindVertexArray(silhouette_vao));
+
+  CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, vbo));
+  CHECK_GL_ERROR(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr));
+  CHECK_GL_ERROR(glEnableVertexAttribArray(0));
+
+  GLuint silhouette_ebo;
+  CHECK_GL_ERROR(glGenBuffers(1, &silhouette_ebo));
+  CHECK_GL_ERROR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, silhouette_ebo));
+  CHECK_GL_ERROR(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * adjacency_idxs.size(), adjacency_idxs.data(), GL_STATIC_DRAW));
+
   // cleanup
   CHECK_GL_ERROR(glBindVertexArray(0));
   CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, 0));
@@ -148,4 +173,14 @@ void ObjRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const
   CHECK_GL_ERROR(glUniform4fv(program.getUniform("light_pos"), 1, &light_pos[0]));
 
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, obj_faces.size() * 3, GL_UNSIGNED_INT, 0));
+
+  
+  CHECK_GL_ERROR(glBindVertexArray(silhouette_vao));
+  silhouette_program.activate();
+
+  CHECK_GL_ERROR(glUniformMatrix4fv(silhouette_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
+  CHECK_GL_ERROR(glUniformMatrix4fv(silhouette_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+  CHECK_GL_ERROR(glUniform4fv(silhouette_program.getUniform("light_pos"), 1, &light_pos[0]));
+  CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES_ADJACENCY, obj_faces.size() * 3 * 2, GL_UNSIGNED_INT, 0));
+  
 }
