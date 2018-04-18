@@ -171,7 +171,13 @@ void ObjRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const
 
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
-  CHECK_GL_ERROR(glUniform4fv(program.getUniform("light_pos"), 1, &light_pos[0][0]));
+  for (unsigned i = 0; i < light_pos.size(); i++) {
+    std::string loc_name = "light_pos[";
+    loc_name += std::to_string(i);
+    loc_name += "]";
+    auto loc = program.get_uniform_direct(loc_name);
+    CHECK_GL_ERROR(glUniform4fv(loc, 1, &light_pos[i][0]));
+  }
 
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, obj_faces.size() * 3, GL_UNSIGNED_INT, 0));
 
