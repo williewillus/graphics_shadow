@@ -45,7 +45,17 @@ void GUI::keyCallback(GLFWwindow* window, int key, int scancode, int action, int
   } else if (key == GLFW_KEY_N && action == GLFW_PRESS) {
     current_preview = (current_preview - 1) % NUM_LIGHTS;
     std::cout << "Now previewing shadow map " << current_preview << std::endl;
+  } else if (key == GLFW_KEY_V && action == GLFW_PRESS) {
+    current_silhouette_idx = (current_silhouette_idx + 1) % NUM_LIGHTS;
+    std::cout << "Now showing silhouette for light " << current_silhouette_idx << std::endl;
+  } else if (key == GLFW_KEY_C && action == GLFW_PRESS) {
+    current_silhouette_idx = (current_silhouette_idx - 1) % NUM_LIGHTS;
+    std::cout << "Now showing silhouette for light " << current_silhouette_idx << std::endl;
+  } else if (key == GLFW_KEY_X && action == GLFW_PRESS) {
+    show_silhouettes_ = !show_silhouettes_;
+    std::cout << "Silhouettes: " << (show_silhouettes_ ? "shown" : "hidden") << std::endl;
   }
+
 
   if (mods == 0 && captureMovement(key, action)) {
     return;

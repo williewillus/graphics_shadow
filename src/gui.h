@@ -54,6 +54,8 @@ public:
   const glm::mat4& get_view()       const { return view_matrix_; }
   const glm::mat4& get_projection() const { return projection_matrix_; }
   const unsigned get_current_preview() const { return current_preview; }
+  const unsigned get_current_silhouette() const { return current_silhouette_idx; }
+  const bool show_silhouettes() const { return show_silhouettes_; }
 
   void updateMotion();
   
@@ -63,6 +65,8 @@ private:
   int window_width_, window_height_;
 
   unsigned current_preview = 0;
+  unsigned current_silhouette_idx = 0;
+  bool show_silhouettes_ = true;
   bool drag_state_ = false;
   int current_button_ = -1;
   float roll_speed_ = M_PI / 64.0f;
