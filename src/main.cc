@@ -183,9 +183,11 @@ int main(int argc, char *argv[]) {
     floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions.at(0), depthMVP);
 
     // draw preview
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
-    glViewport(5, 5, 640, 480);
-    preview_renderer.draw(kNear, kFar, gui.get_current_preview());
+    if (gui.show_preview()) {
+      CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
+      glViewport(5, 5, 640, 480);
+      preview_renderer.draw(kNear, kFar, gui.get_current_preview());
+    }
 
     // Poll and swap.
     glfwPollEvents();
