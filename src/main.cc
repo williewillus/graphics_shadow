@@ -176,7 +176,10 @@ int main(int argc, char *argv[]) {
     CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
 
     // draw object
-    obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, gui.get_current_silhouette(), gui.show_silhouettes());
+    obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
+    if (gui.show_silhouettes()) {
+      obj_renderer.draw_silhouette(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
+    }
 
     // draw floor
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));

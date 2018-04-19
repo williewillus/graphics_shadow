@@ -49,7 +49,8 @@ public:
   ObjRenderer();
 
   bool load(const std::string& file);
-  void draw(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS>& light_pos, unsigned silhouette_light_idx, bool show_silhouettes);
+  void draw(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS>& light_pos);
+  void draw_silhouette(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
   void draw_shadow();
 };
 #endif
