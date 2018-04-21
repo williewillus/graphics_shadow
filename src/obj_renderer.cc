@@ -163,13 +163,16 @@ void ObjRenderer::draw_shadow() {
 }
 
 void ObjRenderer::draw_silhouette(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos) {
- CHECK_GL_ERROR(glBindVertexArray(silhouette_vao));
- silhouette_program.activate();
+  if (!has_object) {
+    return;
+  }
+  CHECK_GL_ERROR(glBindVertexArray(silhouette_vao));
+  silhouette_program.activate();
 
- CHECK_GL_ERROR(glUniformMatrix4fv(silhouette_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
- CHECK_GL_ERROR(glUniformMatrix4fv(silhouette_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
- CHECK_GL_ERROR(glUniform4fv(silhouette_program.getUniform("light_pos"), 1, &light_pos[0]));
- CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES_ADJACENCY, obj_faces.size() * 3 * 2, GL_UNSIGNED_INT, 0));
+  CHECK_GL_ERROR(glUniformMatrix4fv(silhouette_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
+  CHECK_GL_ERROR(glUniformMatrix4fv(silhouette_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+  CHECK_GL_ERROR(glUniform4fv(silhouette_program.getUniform("light_pos"), 1, &light_pos[0]));
+  CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES_ADJACENCY, obj_faces.size() * 3 * 2, GL_UNSIGNED_INT, 0));
 }
 
 void ObjRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS>& light_pos) {
