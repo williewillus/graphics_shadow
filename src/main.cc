@@ -117,7 +117,7 @@ int main(int argc, char *argv[]) {
   GLuint depth_tex;
   CHECK_GL_ERROR(glGenTextures(1, &depth_tex));
   CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
-  CHECK_GL_ERROR(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT16, ShadowMap::WIDTH, ShadowMap::HEIGHT, NUM_LIGHTS));
+  CHECK_GL_ERROR(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT16, ShadowMap::WIDTH, ShadowMap::HEIGHT, NUM_LIGHTS + 1));
   CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
   CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
   CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE));
@@ -136,10 +136,11 @@ int main(int argc, char *argv[]) {
     glViewport(0, 0, window_width, window_height);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_BLEND);
     glEnable(GL_CULL_FACE);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glDepthFunc(GL_LEQUAL);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glCullFace(GL_BACK);
@@ -149,6 +150,24 @@ int main(int argc, char *argv[]) {
     mats = gui.getMatrixPointers();
 
     // do everything
+
+    /* SHADOW VOLUMES START */
+    {
+      ShadowMap depth_map(depth_tex, 2);
+      CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
+
+      shadow_program.activate();
+      depth_map.begin_capture();
+
+      // render all things that cast shadows to shadow map
+      CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
+      CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &gui.get_view()[0][0]));
+
+      obj_renderer.draw_shadow();
+      floor_renderer.draw_shadow();
+    }
+
+    /* SHADOW VOLUMES END */
 
     // capture shadows
     std::array<glm::mat4, NUM_LIGHTS> depthMVP;
@@ -175,6 +194,7 @@ int main(int argc, char *argv[]) {
     CHECK_GL_ERROR(glViewport(0, 0, window_width, window_height));
     CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
 
+
     // draw object
     obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
     if (gui.show_silhouettes()) {
@@ -189,7 +209,8 @@ int main(int argc, char *argv[]) {
     if (gui.show_preview()) {
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
       glViewport(5, 5, 640, 480);
-      preview_renderer.draw(kNear, kFar, gui.get_current_preview());
+      // preview_renderer.draw(kNear, kFar, gui.get_current_preview());
+      preview_renderer.draw(kNear, kFar, 2);
     }
 
     // Poll and swap.
