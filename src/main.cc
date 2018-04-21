@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_BLEND);
     glEnable(GL_CULL_FACE);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glDepthFunc(GL_LEQUAL);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glCullFace(GL_BACK);
@@ -164,7 +164,11 @@ int main(int argc, char *argv[]) {
 
     /* SHADOW VOLUMES START */
     {
-      // step 1
+      glDepthMask(GL_TRUE);
+      glDrawBuffer(GL_NONE);
+
+
+      // step 1: "render scene into depth"
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_depth_tex));
 
       shadow_program.activate();
@@ -176,9 +180,8 @@ int main(int argc, char *argv[]) {
       obj_renderer.draw_shadow();
       floor_renderer.draw_shadow();
 
-      // step 2
-      /*
       glEnable(GL_STENCIL_TEST);
+      // step 2: "render shadow volume into stencil"
 
       glDepthMask(GL_FALSE);
       glEnable(GL_DEPTH_CLAMP);
@@ -190,14 +193,17 @@ int main(int argc, char *argv[]) {
 
       obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
 
+      glDepthMask(GL_TRUE);
       glDisable(GL_DEPTH_CLAMP);
       glEnable(GL_CULL_FACE);
-      */
+
+      // step 3: render shadowed scene
+      // glDrawBuffer(GL_BACK);
     }
     /* SHADOW VOLUMES END */
-
     // capture shadows
     std::array<glm::mat4, NUM_LIGHTS> depthMVP;
+    /*
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
     shadow_program.activate();
     for (unsigned i = 0; i < NUM_LIGHTS; i++) {
@@ -212,14 +218,16 @@ int main(int argc, char *argv[]) {
       CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
       CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
 
-      obj_renderer.draw_shadow();
-      floor_renderer.draw_shadow();
+      // obj_renderer.draw_shadow();
+      // floor_renderer.draw_shadow();
     }
-
-    // clean up
+    */
     CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     CHECK_GL_ERROR(glViewport(0, 0, window_width, window_height));
     CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
+    glStencilFunc(GL_EQUAL, 0x0, 0xFF);
+    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
+
 
     // draw object
     obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
@@ -230,6 +238,8 @@ int main(int argc, char *argv[]) {
     // draw floor
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
     floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions.at(0), depthMVP);
+
+    glDisable(GL_STENCIL_TEST);
 
     // draw preview
     if (gui.show_preview()) {

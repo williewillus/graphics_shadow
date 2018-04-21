@@ -53,10 +53,13 @@ void main() {
   }
 
   float shadow = 0;
+  /*
   for (int i = 0; i < NUM_LIGHTS; i++) {
     vec4 shadow_coord = depthMVP[i] * vec4(world_position, 1);
     shadow += 0.75 * compute_shadow(shadow_coord, i);
   }
   fragment_color = vec4((1 - shadow) * fragment_color.rgb, 1.0);
+  */
+  fragment_color = vec4(fragment_color.rgb, 1.0);
 }
 )zzz"

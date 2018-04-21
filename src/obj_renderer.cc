@@ -22,6 +22,9 @@ ObjRenderer::ObjRenderer() {
   const char* silhouette_frag =
   #include "shaders/silhouette.frag"
   ;
+  const char* shadow_volume_geom =
+  #include "shaders/shadow_volume.geom"
+  ;
 
   program
     .addVsh(obj_vert)
@@ -32,6 +35,12 @@ ObjRenderer::ObjRenderer() {
   silhouette_program
     .addVsh(obj_vert)
     .addGsh(silhouette_geom)
+    .addFsh(silhouette_frag)
+    .build({ "projection", "view", "light_pos" });
+
+  volume_program
+    .addVsh(obj_vert)
+    .addGsh(shadow_volume_geom)
     .addFsh(silhouette_frag)
     .build({ "projection", "view", "light_pos" });
 }
@@ -172,6 +181,19 @@ void ObjRenderer::draw_silhouette(const glm::mat4& projection, const glm::mat4& 
   CHECK_GL_ERROR(glUniformMatrix4fv(silhouette_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
   CHECK_GL_ERROR(glUniformMatrix4fv(silhouette_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
   CHECK_GL_ERROR(glUniform4fv(silhouette_program.getUniform("light_pos"), 1, &light_pos[0]));
+  CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES_ADJACENCY, obj_faces.size() * 3 * 2, GL_UNSIGNED_INT, 0));
+}
+
+void ObjRenderer::draw_volume(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos) {
+  if (!has_object) {
+    return;
+  }
+  CHECK_GL_ERROR(glBindVertexArray(silhouette_vao));
+  volume_program.activate();
+
+  CHECK_GL_ERROR(glUniformMatrix4fv(volume_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
+  CHECK_GL_ERROR(glUniformMatrix4fv(volume_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+  CHECK_GL_ERROR(glUniform4fv(volume_program.getUniform("light_pos"), 1, &light_pos[0]));
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES_ADJACENCY, obj_faces.size() * 3 * 2, GL_UNSIGNED_INT, 0));
 }
 
