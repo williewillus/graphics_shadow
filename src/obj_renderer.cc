@@ -1,6 +1,7 @@
 #include "obj_renderer.h"
 #include <iostream>
 #include <fstream>
+#include <array>
 #include <debuggl.h>
 #include <glm/ext.hpp>
 #include <unordered_map>
