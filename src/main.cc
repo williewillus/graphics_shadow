@@ -7,7 +7,7 @@
 #include "floor_renderer.h"
 #include "preview_renderer.h"
 #include "obj_renderer.h"
-#include "shadow_map.h"
+#include "depth_map.h"
 
 #include <algorithm>
 #include <array>
@@ -27,6 +27,8 @@
 
 int window_width = 1280;
 int window_height = 720;
+int shadow_map_height = 2048;
+int shadow_map_width = 2048;
 const std::string window_title = "Shadow Final Project";
 
 void ErrorCallback(int error, const char *description) {
@@ -114,19 +116,29 @@ int main(int argc, char *argv[]) {
   PreviewRenderer preview_renderer;
   read_args(argc, argv, obj_renderer);
 
-  GLuint depth_tex;
-  CHECK_GL_ERROR(glGenTextures(1, &depth_tex));
-  CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
-  CHECK_GL_ERROR(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT16, ShadowMap::WIDTH, ShadowMap::HEIGHT, NUM_LIGHTS + 1));
+  GLuint map_depth_tex;
+  CHECK_GL_ERROR(glGenTextures(1, &map_depth_tex));
+  CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
+  CHECK_GL_ERROR(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT16, shadow_map_width, shadow_map_height, NUM_LIGHTS));
   CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
   CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
   CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE));
   CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE));
-  
-  std::array<ShadowMap, NUM_LIGHTS> shadow_maps {
-    ShadowMap(depth_tex, 0),
-    ShadowMap(depth_tex, 1),
+
+  GLuint volume_depth_tex;
+  CHECK_GL_ERROR(glGenTextures(1, &volume_depth_tex));
+  CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_depth_tex));
+  CHECK_GL_ERROR(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT16, window_width, window_height, 1));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE));
+
+  std::array<DepthMap, NUM_LIGHTS> light_depth_maps {
+    DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 0),
+    DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 1),
   };
+  DepthMap camera_depth_map(window_width, window_height, volume_depth_tex, 0);
 
   MatrixPointers mats; // Define MatrixPointers here for lambda to capture
   
@@ -136,11 +148,10 @@ int main(int argc, char *argv[]) {
     glViewport(0, 0, window_width, window_height);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_STENCIL_TEST);
     glEnable(GL_MULTISAMPLE);
     glEnable(GL_BLEND);
     glEnable(GL_CULL_FACE);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDepthFunc(GL_LEQUAL);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glCullFace(GL_BACK);
@@ -153,28 +164,44 @@ int main(int argc, char *argv[]) {
 
     /* SHADOW VOLUMES START */
     {
-      ShadowMap depth_map(depth_tex, 2);
-      CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
+      // step 1
+      CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_depth_tex));
 
       shadow_program.activate();
-      depth_map.begin_capture();
+      camera_depth_map.begin_capture();
 
-      // render all things that cast shadows to shadow map
       CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
       CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &gui.get_view()[0][0]));
 
       obj_renderer.draw_shadow();
       floor_renderer.draw_shadow();
-    }
 
+      // step 2
+      /*
+      glEnable(GL_STENCIL_TEST);
+
+      glDepthMask(GL_FALSE);
+      glEnable(GL_DEPTH_CLAMP);
+      glDisable(GL_CULL_FACE);
+
+      glStencilFunc(GL_ALWAYS, 0, 0xff);
+      glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+      glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+
+      obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
+
+      glDisable(GL_DEPTH_CLAMP);
+      glEnable(GL_CULL_FACE);
+      */
+    }
     /* SHADOW VOLUMES END */
 
     // capture shadows
     std::array<glm::mat4, NUM_LIGHTS> depthMVP;
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
     shadow_program.activate();
     for (unsigned i = 0; i < NUM_LIGHTS; i++) {
-      shadow_maps.at(i).begin_capture();
+      light_depth_maps.at(i).begin_capture();
       auto center = light_positions.at(i) + 0.5f * light_directions.at(i);
       auto view = glm::lookAt(glm::vec3(light_positions.at(i)), glm::vec3(center), glm::vec3(0, 1, 0));
 
@@ -194,7 +221,6 @@ int main(int argc, char *argv[]) {
     CHECK_GL_ERROR(glViewport(0, 0, window_width, window_height));
     CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
 
-
     // draw object
     obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
     if (gui.show_silhouettes()) {
@@ -202,15 +228,20 @@ int main(int argc, char *argv[]) {
     }
 
     // draw floor
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
     floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions.at(0), depthMVP);
 
     // draw preview
     if (gui.show_preview()) {
-      CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, depth_tex));
+      /*
+      CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
       glViewport(5, 5, 640, 480);
-      // preview_renderer.draw(kNear, kFar, gui.get_current_preview());
-      preview_renderer.draw(kNear, kFar, 2);
+      preview_renderer.draw(kNear, kFar, gui.get_current_preview());
+      */
+
+      CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_depth_tex));
+      glViewport(5, 5, 640, 360);
+      preview_renderer.draw(kNear, kFar, 0);
     }
 
     // Poll and swap.
