@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
+#include <array>
 #include "config.h"
 #include "shader.h"
 
