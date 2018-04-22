@@ -159,96 +159,98 @@ int main(int argc, char *argv[]) {
     gui.updateMotion();
     gui.updateMatrices();
     mats = gui.getMatrixPointers();
+    bool use_shadow_volumes = true;
 
-    // do everything
-
-    /* SHADOW VOLUMES START */
-    glDepthMask(GL_TRUE);
-    glDrawBuffer(GL_NONE);
-
-    // first, draw the scene into the depth buffer
-    shadow_program.activate();
-
-    CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
-    CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &gui.get_view()[0][0]));
-
-    obj_renderer.draw_shadow();
-    floor_renderer.draw_shadow();
-
-    for (unsigned i = 0; i < NUM_LIGHTS; i++) {
-      const auto& light_pos = light_positions.at(i);
-      glEnable(GL_STENCIL_TEST);
-
-      glDepthMask(GL_FALSE);
-      glEnable(GL_DEPTH_CLAMP);
-      glDisable(GL_CULL_FACE);
-
-      glStencilFunc(GL_ALWAYS, 0, 0xff);
-      glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-      glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
-
-      // draw volume into stencil buffer
-      obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_pos);
-
+    // todo move bool to gui, split into two methods
+    if (use_shadow_volumes) {
       glDepthMask(GL_TRUE);
-      glDisable(GL_DEPTH_CLAMP);
-      glEnable(GL_CULL_FACE);
+      glDrawBuffer(GL_NONE);
 
-      // draw rest of scene, blending into what's there.
-      // areas in shadow are masked out by stencil buffer
-      
-    }
+      // first, draw the scene into the depth buffer
+      shadow_program.activate();
 
-    // render the scene another time for some ambient lighting
-
-    // capture shadows
-    std::array<glm::mat4, NUM_LIGHTS> depthMVP;
-    /*
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
-    shadow_program.activate();
-    for (unsigned i = 0; i < NUM_LIGHTS; i++) {
-      light_depth_maps.at(i).begin_capture();
-      auto center = light_positions.at(i) + 0.5f * light_directions.at(i);
-      auto view = glm::lookAt(glm::vec3(light_positions.at(i)), glm::vec3(center), glm::vec3(0, 1, 0));
-
-      // save to use in real rendering later
-      depthMVP.at(i) = gui.get_projection() * view;
-
-      // render all things that cast shadows to shadow map
       CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
-      CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+      CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &gui.get_view()[0][0]));
 
-      // obj_renderer.draw_shadow();
-      // floor_renderer.draw_shadow();
-    }
-    */
-    CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
-    glStencilFunc(GL_EQUAL, 0x0, 0xFF);
-    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
+      obj_renderer.draw_shadow();
+      floor_renderer.draw_shadow();
 
-    // draw object
-    obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
-    if (gui.show_silhouettes()) {
-      obj_renderer.draw_silhouette(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
-    }
+      // inside this for loop should be all the stuff from RenderShadowVolIntoStencil and RenderShadowedScene
+      glEnable(GL_STENCIL_TEST);
+      for (unsigned i = 0; i < NUM_LIGHTS; i++) {
+	const auto& light_pos = light_positions.at(i);
 
-    // draw floor
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
-    floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions.at(0), depthMVP);
+        glDrawBuffer(GL_NONE); // don't draw colors
+	glDepthMask(GL_FALSE); // disable depth writing
+	glEnable(GL_DEPTH_CLAMP);
+	glDisable(GL_CULL_FACE); // don't cull back of volume
 
-    glDisable(GL_STENCIL_TEST);
+	glStencilFunc(GL_ALWAYS, 0, 0xff);
+	glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+	glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
 
-    // draw preview
-    if (gui.show_preview()) {
-      /*
+	// draw volume into stencil buffer
+	obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_pos);
+
+	glDisable(GL_DEPTH_CLAMP);
+	glEnable(GL_CULL_FACE);
+
+	// draw rest of scene, blending into what's there.
+	// areas in shadow are masked out by stencil buffer
+	CHECK_GL_ERROR(glDrawBuffer(GL_BACK)); // actually draw colors to screen
+	CHECK_GL_ERROR(glEnable(GL_BLEND)); // blend additively with what's there
+	CHECK_GL_ERROR(glBlendEquation(GL_FUNC_ADD));
+	CHECK_GL_ERROR(glBlendFunc(GL_ONE, GL_ONE));
+	glStencilFunc(GL_EQUAL, 0x0, 0xFF);
+	glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
+
+	// TODO make this a separate method, or at least pass a uniform to floor.frag telling if shadowmapping or shadowvolumes in use!
+	floor_renderer.draw(gui.get_projection(), gui.get_view(), light_pos, std::array<glm::mat4, NUM_LIGHTS>());
+	// TODO same here?
+	obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
+	CHECK_GL_ERROR(glDisable(GL_BLEND));
+      }
+
+      // render the scene another time for some ambient lighting
+      
+      
+    } else {     
+      std::array<glm::mat4, NUM_LIGHTS> depthMVP;
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
-      glViewport(5, 5, 640, 480);
-      preview_renderer.draw(kNear, kFar, gui.get_current_preview());
-      */
+      shadow_program.activate();
+      for (unsigned i = 0; i < NUM_LIGHTS; i++) {
+        light_depth_maps.at(i).begin_capture();
+	auto center = light_positions.at(i) + 0.5f * light_directions.at(i);
+	auto view = glm::lookAt(glm::vec3(light_positions.at(i)), glm::vec3(center), glm::vec3(0, 1, 0));
 
-      CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_depth_tex));
-      glViewport(5, 5, 640, 360);
-      preview_renderer.draw(kNear, kFar, 0);
+	// save to use in real rendering later
+	depthMVP.at(i) = gui.get_projection() * view;
+
+	// render all things that cast shadows to shadow map
+	CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
+	CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+
+	obj_renderer.draw_shadow();
+	floor_renderer.draw_shadow();
+      }
+      
+
+      // draw object
+      obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
+      if (gui.show_silhouettes()) {
+	obj_renderer.draw_silhouette(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
+      }
+
+      // draw floor
+      CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
+      floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions.at(0), depthMVP);
+
+      // draw preview
+      if (gui.show_preview()) {
+	CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
+	glViewport(5, 5, 640, 480);
+	preview_renderer.draw(kNear, kFar, gui.get_current_preview());
+      }
     }
 
     // Poll and swap.
