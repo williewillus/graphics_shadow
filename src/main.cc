@@ -166,11 +166,8 @@ int main(int argc, char *argv[]) {
     glDepthMask(GL_TRUE);
     glDrawBuffer(GL_NONE);
 
-    // step 1: "render scene into depth"
-    // CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_depth_tex));
-
+    // first, draw the scene into the depth buffer
     shadow_program.activate();
-    // camera_depth_map.begin_capture();
 
     CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
     CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &gui.get_view()[0][0]));
@@ -178,29 +175,32 @@ int main(int argc, char *argv[]) {
     obj_renderer.draw_shadow();
     floor_renderer.draw_shadow();
 
-    CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-    CHECK_GL_ERROR(glViewport(0, 0, window_width, window_height));
+    for (unsigned i = 0; i < NUM_LIGHTS; i++) {
+      const auto& light_pos = light_positions.at(i);
+      glEnable(GL_STENCIL_TEST);
 
-    glEnable(GL_STENCIL_TEST);
-    // step 2: "render shadow volume into stencil"
+      glDepthMask(GL_FALSE);
+      glEnable(GL_DEPTH_CLAMP);
+      glDisable(GL_CULL_FACE);
 
-    glDepthMask(GL_FALSE);
-    glEnable(GL_DEPTH_CLAMP);
-    glDisable(GL_CULL_FACE);
+      glStencilFunc(GL_ALWAYS, 0, 0xff);
+      glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+      glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
 
-    glStencilFunc(GL_ALWAYS, 0, 0xff);
-    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+      // draw volume into stencil buffer
+      obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_pos);
 
-    obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
+      glDepthMask(GL_TRUE);
+      glDisable(GL_DEPTH_CLAMP);
+      glEnable(GL_CULL_FACE);
 
-    glDepthMask(GL_TRUE);
-    glDisable(GL_DEPTH_CLAMP);
-    glEnable(GL_CULL_FACE);
+      // draw rest of scene, blending into what's there.
+      // areas in shadow are masked out by stencil buffer
+      
+    }
 
-    // step 3: render shadowed scene
+    // render the scene another time for some ambient lighting
 
-    /* SHADOW VOLUMES END */
     // capture shadows
     std::array<glm::mat4, NUM_LIGHTS> depthMVP;
     /*
