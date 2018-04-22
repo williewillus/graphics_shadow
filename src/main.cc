@@ -177,7 +177,8 @@ int main(int argc, char *argv[]) {
 
       // inside this for loop should be all the stuff from RenderShadowVolIntoStencil and RenderShadowedScene
       glEnable(GL_STENCIL_TEST);
-      for (unsigned i = 0; i < NUM_LIGHTS; i++) {
+      // for (unsigned i = 0; i < NUM_LIGHTS; i++) {
+      for (unsigned i = 0; i < 1; i++) {
         const auto& light_pos = light_positions.at(i);
 
         glDrawBuffer(GL_NONE); // don't draw colors

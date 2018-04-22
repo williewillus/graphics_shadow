@@ -8,7 +8,7 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform vec4 light_pos;
 
-const int my_vertices[3] = int[3](0, 2, 4);
+const int my_vertices[3] = int[3](0, 4, 2);
 float EPSILON = 0.0001;
 
 void quad(vec4 a, vec4 b) {
