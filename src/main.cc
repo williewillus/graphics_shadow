@@ -125,20 +125,10 @@ int main(int argc, char *argv[]) {
   CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE));
   CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE));
 
-  GLuint volume_depth_tex;
-  CHECK_GL_ERROR(glGenTextures(1, &volume_depth_tex));
-  CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_depth_tex));
-  CHECK_GL_ERROR(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT16, window_width, window_height, 1));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE));
-
   std::array<DepthMap, NUM_LIGHTS> light_depth_maps {
     DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 0),
-      DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 1),
+    DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 1),
   };
-  DepthMap camera_depth_map(window_width, window_height, volume_depth_tex, 0);
 
   MatrixPointers mats; // Define MatrixPointers here for lambda to capture
 
@@ -238,7 +228,6 @@ int main(int argc, char *argv[]) {
         obj_renderer.draw_shadow();
         floor_renderer.draw_shadow();
       }
-
 
       // draw object
       obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
