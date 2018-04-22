@@ -163,43 +163,43 @@ int main(int argc, char *argv[]) {
     // do everything
 
     /* SHADOW VOLUMES START */
-    {
-      glDepthMask(GL_TRUE);
-      glDrawBuffer(GL_NONE);
+    glDepthMask(GL_TRUE);
+    glDrawBuffer(GL_NONE);
 
+    // step 1: "render scene into depth"
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_depth_tex));
 
-      // step 1: "render scene into depth"
-      CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_depth_tex));
+    shadow_program.activate();
+    // camera_depth_map.begin_capture();
 
-      shadow_program.activate();
-      camera_depth_map.begin_capture();
+    CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
+    CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &gui.get_view()[0][0]));
 
-      CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
-      CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &gui.get_view()[0][0]));
+    obj_renderer.draw_shadow();
+    floor_renderer.draw_shadow();
 
-      obj_renderer.draw_shadow();
-      floor_renderer.draw_shadow();
+    CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    CHECK_GL_ERROR(glViewport(0, 0, window_width, window_height));
 
-      glEnable(GL_STENCIL_TEST);
-      // step 2: "render shadow volume into stencil"
+    glEnable(GL_STENCIL_TEST);
+    // step 2: "render shadow volume into stencil"
 
-      glDepthMask(GL_FALSE);
-      glEnable(GL_DEPTH_CLAMP);
-      glDisable(GL_CULL_FACE);
+    glDepthMask(GL_FALSE);
+    glEnable(GL_DEPTH_CLAMP);
+    glDisable(GL_CULL_FACE);
 
-      glStencilFunc(GL_ALWAYS, 0, 0xff);
-      glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-      glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+    glStencilFunc(GL_ALWAYS, 0, 0xff);
+    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
 
-      obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
+    obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
 
-      glDepthMask(GL_TRUE);
-      glDisable(GL_DEPTH_CLAMP);
-      glEnable(GL_CULL_FACE);
+    glDepthMask(GL_TRUE);
+    glDisable(GL_DEPTH_CLAMP);
+    glEnable(GL_CULL_FACE);
 
-      // step 3: render shadowed scene
-      // glDrawBuffer(GL_BACK);
-    }
+    // step 3: render shadowed scene
+
     /* SHADOW VOLUMES END */
     // capture shadows
     std::array<glm::mat4, NUM_LIGHTS> depthMVP;
@@ -222,12 +222,9 @@ int main(int argc, char *argv[]) {
       // floor_renderer.draw_shadow();
     }
     */
-    CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-    CHECK_GL_ERROR(glViewport(0, 0, window_width, window_height));
     CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
     glStencilFunc(GL_EQUAL, 0x0, 0xFF);
     glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
-
 
     // draw object
     obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
