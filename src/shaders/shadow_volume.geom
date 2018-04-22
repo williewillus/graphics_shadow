@@ -8,7 +8,8 @@ uniform mat4 projection;
 uniform mat4 view;
 uniform vec4 light_pos;
 
-const int my_vertices[3] = int[3](0, 4, 2);
+const int front_vertices[3] = int[3](0, 2, 4);
+const int back_vertices[3] = int[3](0, 4, 2);
 float EPSILON = 0.0001;
 
 void quad(vec4 a, vec4 b) {
@@ -59,7 +60,7 @@ void main() {
 
     // emit all light-facing triangles as front of volume
     for (int i = 0; i < 3; i++) {
-      int vertex = my_vertices[i];
+      int vertex = front_vertices[i];
 
       vec4 light_dir = gl_in[vertex].gl_Position - light_pos / light_pos.w;
       gl_Position = projection * view * (gl_in[vertex].gl_Position + EPSILON * normalize(light_dir));
@@ -69,7 +70,7 @@ void main() {
     
     // project light-facing triangles as back
     for (int i = 0; i < 3; i++) {
-      int vertex = my_vertices[i];
+      int vertex = back_vertices[i];
 
       vec4 light_dir = gl_in[vertex].gl_Position - light_pos / light_pos.w;
       gl_Position = projection * view * light_dir;
