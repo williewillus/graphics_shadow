@@ -190,8 +190,10 @@ int main(int argc, char *argv[]) {
 	glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
 
 	// draw volume into stencil buffer
+	glClear(GL_STENCIL_BUFFER_BIT);
 	obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_pos);
-
+	
+	glDepthMask(GL_TRUE);
 	glDisable(GL_DEPTH_CLAMP);
 	glEnable(GL_CULL_FACE);
 
@@ -210,6 +212,8 @@ int main(int argc, char *argv[]) {
 	obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
 	CHECK_GL_ERROR(glDisable(GL_BLEND));
       }
+      glDisable(GL_STENCIL_TEST);
+      
 
       // render the scene another time for some ambient lighting
       
