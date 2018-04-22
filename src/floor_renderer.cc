@@ -19,7 +19,7 @@ FloorRenderer::FloorRenderer() {
     .addVsh(floor_vert)
     .addGsh(floor_geom)
     .addFsh(floor_frag)
-    .build({"projection", "view", "light_pos", "depthMVP" });
+    .build({"projection", "view", "light_pos", "depthMVP", "use_shadow_map" });
 
   // init VAO/VBO/EBO and upload data
   CHECK_GL_ERROR(glGenVertexArrays(1, &vao));
@@ -46,13 +46,16 @@ void FloorRenderer::draw_shadow() {
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
 }
 
-void FloorRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos, const std::array<glm::mat4, NUM_LIGHTS>& depthMVP) {
+void FloorRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos, 
+    const std::array<glm::mat4, NUM_LIGHTS>& depthMVP, const bool use_shadow_map) {
   CHECK_GL_ERROR(glBindVertexArray(vao));
 
   program.activate();
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
   CHECK_GL_ERROR(glUniform4fv(program.getUniform("light_pos"), 1, &light_pos[0]));
+  CHECK_GL_ERROR(glUniform1i(program.getUniform("use_shadow_map"), (int) use_shadow_map));
+
   for (unsigned i = 0; i < depthMVP.size(); i++) {
     std::string loc_name = "depthMVP[";
     loc_name += std::to_string(i);

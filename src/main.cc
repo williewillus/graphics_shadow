@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
     gui.updateMotion();
     gui.updateMatrices();
     mats = gui.getMatrixPointers();
-    bool use_shadow_volumes = true;
+    bool use_shadow_volumes = false;
 
     // todo move bool to gui, split into two methods
     if (use_shadow_volumes) {
@@ -198,18 +198,14 @@ int main(int argc, char *argv[]) {
         glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
 
         // TODO make this a separate method, or at least pass a uniform to floor.frag telling if shadowmapping or shadowvolumes in use!
-        floor_renderer.draw(gui.get_projection(), gui.get_view(), light_pos, std::array<glm::mat4, NUM_LIGHTS>());
+        floor_renderer.draw(gui.get_projection(), gui.get_view(), light_pos, std::array<glm::mat4, NUM_LIGHTS>(), !use_shadow_volumes);
         // TODO same here?
         obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
         CHECK_GL_ERROR(glDisable(GL_BLEND));
       }
       glDisable(GL_STENCIL_TEST);
-
-
       // render the scene another time for some ambient lighting
-
-
-    } else {     
+    } else {
       std::array<glm::mat4, NUM_LIGHTS> depthMVP;
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
       shadow_program.activate();
@@ -237,7 +233,7 @@ int main(int argc, char *argv[]) {
 
       // draw floor
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
-      floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions.at(0), depthMVP);
+      floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions.at(0), depthMVP, !use_shadow_volumes);
 
       // draw preview
       if (gui.show_preview()) {

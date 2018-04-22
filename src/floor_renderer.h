@@ -28,7 +28,8 @@ class FloorRenderer {
   ShaderProgram program;
 public:
   FloorRenderer();
-  void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos, const std::array<glm::mat4, NUM_LIGHTS>& depthMVP);
+  void draw(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos, 
+      const std::array<glm::mat4, NUM_LIGHTS>& depthMVP, const bool use_shadow_map);
   void draw_shadow();
 };
 #endif
