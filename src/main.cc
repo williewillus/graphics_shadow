@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
     glDrawBuffer(GL_NONE);
 
     // step 1: "render scene into depth"
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_depth_tex));
+    // CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_depth_tex));
 
     shadow_program.activate();
     // camera_depth_map.begin_capture();
