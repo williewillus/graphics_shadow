@@ -225,6 +225,10 @@ int main(int argc, char *argv[]) {
         floor_renderer.draw_shadow();
       }
 
+      CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+      CHECK_GL_ERROR(glViewport(0, 0, window_width, window_height));
+      CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
+
       // draw object
       obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
       if (gui.show_silhouettes()) {
