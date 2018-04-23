@@ -138,12 +138,9 @@ int main(int argc, char *argv[]) {
     glViewport(0, 0, window_width, window_height);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_BLEND);
     glEnable(GL_CULL_FACE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glDepthFunc(GL_LEQUAL);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glCullFace(GL_BACK);
 
     gui.updateMotion();
@@ -189,8 +186,11 @@ int main(int argc, char *argv[]) {
           glBlendEquation(GL_FUNC_ADD); // blend additively
           float factor = 1 / static_cast<float>(NUM_LIGHTS);
           glBlendColor(factor, factor, factor, factor);
-          glBlendFunc(GL_CONSTANT_COLOR, GL_CONSTANT_COLOR);
-          //glBlendFunc(GL_ONE, GL_ONE);
+	  if (i == 0) {
+	    glBlendFunc(GL_CONSTANT_COLOR, GL_ZERO);
+	  } else {
+	    glBlendFunc(GL_CONSTANT_COLOR, GL_ONE);
+	  }
 
           glDepthMask(GL_TRUE); // depth writing on
           glDrawBuffer(GL_BACK);// draw colors
