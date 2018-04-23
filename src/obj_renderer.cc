@@ -25,6 +25,9 @@ ObjRenderer::ObjRenderer() {
   const char* shadow_volume_geom =
   #include "shaders/shadow_volume.geom"
   ;
+  const char* ambient_frag =
+  #include "shaders/ambient.frag"
+  ;
 
   program
     .addVsh(obj_vert)
@@ -43,6 +46,12 @@ ObjRenderer::ObjRenderer() {
     .addGsh(shadow_volume_geom)
     .addFsh(silhouette_frag)
     .build({ "projection", "view", "light_pos" });
+
+  ambient_program
+    .addVsh(obj_vert)
+    .addGsh(obj_geom)
+    .addFsh(ambient_frag)
+    .build({ "projection", "view" });
 }
 
 // Return vertex index opposite to given face
@@ -169,6 +178,16 @@ void ObjRenderer::draw_shadow() {
 
   CHECK_GL_ERROR(glBindVertexArray(vao));
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, obj_faces.size() * 3, GL_UNSIGNED_INT, 0));
+}
+
+void ObjRenderer::draw_ambient(const glm::mat4& projection, const glm::mat4& view) {
+  if (!has_object)
+    return;
+
+  ambient_program.activate();
+  CHECK_GL_ERROR(glUniformMatrix4fv(ambient_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
+  CHECK_GL_ERROR(glUniformMatrix4fv(ambient_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+  draw_shadow();
 }
 
 void ObjRenderer::draw_silhouette(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos) {

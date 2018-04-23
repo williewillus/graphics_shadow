@@ -47,6 +47,7 @@ class ObjRenderer {
   ShaderProgram program;
   ShaderProgram silhouette_program;
   ShaderProgram volume_program;
+  ShaderProgram ambient_program;
 public:
   ObjRenderer();
 
@@ -55,5 +56,6 @@ public:
   void draw_silhouette(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
   void draw_volume(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
   void draw_shadow();
+  void draw_ambient(const glm::mat4& projection, const glm::mat4& view);
 };
 #endif

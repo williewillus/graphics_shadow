@@ -164,14 +164,13 @@ int main(int argc, char *argv[]) {
       obj_renderer.draw_shadow();
       floor_renderer.draw_shadow();
 
-      // inside this for loop should be all the stuff from RenderShadowVolIntoStencil and RenderShadowedScene
+      // Now draw all shadow volumes for all lights into stencil buffer
       glEnable(GL_STENCIL_TEST);
       for (unsigned i = 0; i < NUM_LIGHTS; i++) {
-      // for (unsigned i = 0; i < 1; i++) {
         const auto& light_pos = light_positions.at(i);
 
-        glDrawBuffer(GL_NONE); // don't draw colors
-        glDepthMask(GL_FALSE); // disable depth writing
+        glDrawBuffer(GL_NONE);   // don't draw colors
+        glDepthMask(GL_FALSE);   // disable depth writing
         glEnable(GL_DEPTH_CLAMP);
         glDisable(GL_CULL_FACE); // don't cull back of volume
 
@@ -182,7 +181,8 @@ int main(int argc, char *argv[]) {
         // draw volume into stencil buffer
         obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_pos);
       }
-      glDepthMask(GL_TRUE);
+
+      glDepthMask(GL_TRUE); // reenable depth writing
       glClear(GL_DEPTH_BUFFER_BIT);
       glDisable(GL_DEPTH_CLAMP);
       glEnable(GL_CULL_FACE);
@@ -192,15 +192,17 @@ int main(int argc, char *argv[]) {
       glStencilFunc(GL_EQUAL, 0x0, 0xFF);
       glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
 
-      // temporary light_pos. should probably be replaced
       floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), !use_shadow_volumes);
-      // TODO same here?
       obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
       CHECK_GL_ERROR(glDisable(GL_BLEND));
-
       glDisable(GL_STENCIL_TEST);
 
-      // TODO: render the scene another time for some ambient lighting
+      // render the scene another time for some ambient lighting
+      CHECK_GL_ERROR(glEnable(GL_BLEND));
+      CHECK_GL_ERROR(glBlendEquation(GL_FUNC_ADD)); // blend additively
+      CHECK_GL_ERROR(glBlendFunc(GL_ONE, GL_ONE));
+      floor_renderer.draw_ambient(gui.get_projection(), gui.get_view());
+      obj_renderer.draw_ambient(gui.get_projection(), gui.get_view());
     } else {
       std::array<glm::mat4, NUM_LIGHTS> depthMVP;
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));

@@ -26,10 +26,12 @@ class FloorRenderer {
   GLuint ebo;
 
   ShaderProgram program;
+  ShaderProgram ambient_program;
 public:
   FloorRenderer();
   void draw(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS>& light_pos, 
       const std::array<glm::mat4, NUM_LIGHTS>& depthMVP, const bool use_shadow_map);
+  void draw_ambient(const glm::mat4& projection, const glm::mat4& view);
   void draw_shadow();
 };
 #endif
