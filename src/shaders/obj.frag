@@ -6,12 +6,18 @@ in vec3 world_position;
 
 const int NUM_LIGHTS = 2;
 uniform vec4 light_pos[NUM_LIGHTS];
+uniform int ambient;
 
 out vec4 fragment_color;
 
 void main() {
   vec3 base_color = vec3(0.0, 0.0, 1.0);
   vec3 color = vec3(0, 0, 0);
+
+  if (ambient != 0) {
+    fragment_color = vec4(0.15 * base_color, 1.0);
+    return;
+  }
 
   for (int i = 0; i < NUM_LIGHTS; i++) {
     vec4 light_direction = light_pos[i] - vec4(world_position, 1);
@@ -20,7 +26,6 @@ void main() {
     color += clamp(dot_nl * base_color, 0.0, 1.0);
   }
 	
-  // fragment_color = vec4(0, 0, 1, 1); 
   fragment_color = vec4(clamp(color, 0, 1), 1);
 }
 )zzz"

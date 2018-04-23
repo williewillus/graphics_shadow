@@ -168,6 +168,7 @@ int main(int argc, char *argv[]) {
       // Now draw all shadow volumes for all lights into stencil buffer
       {
         glEnable(GL_STENCIL_TEST);
+        // for (unsigned i = 0; i < 1; i++) {
         for (unsigned i = 0; i < NUM_LIGHTS; i++) {
           // draw volume into stencil buffer
 	  glDepthMask(GL_FALSE);   // disable depth writing
@@ -197,8 +198,8 @@ int main(int argc, char *argv[]) {
 	  glStencilMask(GL_FALSE); // stencil writing off
 	  glStencilFunc(GL_EQUAL, 0x0, 0xFF); // draw only if stencil buf 0
 	  glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
-	  floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), !use_shadow_volumes);
-	  obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
+	  floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), !use_shadow_volumes, false);
+	  obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, false);
 
 	  glDisable(GL_BLEND);
         }
@@ -210,8 +211,8 @@ int main(int argc, char *argv[]) {
         CHECK_GL_ERROR(glEnable(GL_BLEND));
         CHECK_GL_ERROR(glBlendEquation(GL_FUNC_ADD)); // blend additively
         CHECK_GL_ERROR(glBlendFunc(GL_ONE, GL_ONE));
-        floor_renderer.draw_ambient(gui.get_projection(), gui.get_view());
-        obj_renderer.draw_ambient(gui.get_projection(), gui.get_view());
+        floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), !use_shadow_volumes, true);
+        obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, true);
 	//obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions[gui.get_current_silhouette()]);
       }
       glDisable(GL_BLEND);
@@ -242,14 +243,14 @@ int main(int argc, char *argv[]) {
       CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
 
       // draw object
-      obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
+      obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, false);
       if (gui.show_silhouettes()) {
         obj_renderer.draw_silhouette(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
       }
 
       // draw floor
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
-      floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, depthMVP, !use_shadow_volumes);
+      floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, depthMVP, !use_shadow_volumes, false);
 
       // draw preview
       if (gui.show_preview()) {

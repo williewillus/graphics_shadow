@@ -14,6 +14,7 @@ uniform vec4 light_pos[NUM_LIGHTS];
 uniform mat4 depthMVP[NUM_LIGHTS];
 uniform sampler2DArray shadow_map;
 uniform int use_shadow_map;
+uniform int ambient;
 
 float compute_shadow(vec4 coord_, int idx) {
   vec3 coord = coord_.xyz / coord_.w;
@@ -49,6 +50,11 @@ void main() {
     base_color = floor(mod(world_position[2], 2)) == 0 ? gray : white;
   }
   
+  if (ambient != 0) {
+    fragment_color = vec4(0.15 * base_color, 1.0);
+    return;
+  }
+
   for (int i = 0; i < NUM_LIGHTS; i++) {
     vec4 light_direction = light_pos[i] - vec4(world_position, 1);
     float dot_nl = dot(normalize(light_direction), normalize(normal));

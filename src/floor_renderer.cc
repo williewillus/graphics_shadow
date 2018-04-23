@@ -14,21 +14,12 @@ FloorRenderer::FloorRenderer() {
   const char* floor_frag = 
   #include "shaders/floor.frag"
   ;
-  const char* ambient_frag =
-  #include "shaders/ambient.frag"
-  ;
 
   program
     .addVsh(floor_vert)
     .addGsh(floor_geom)
     .addFsh(floor_frag)
-    .build({"projection", "view", "light_pos", "depthMVP", "use_shadow_map" });
-
-  ambient_program
-    .addVsh(floor_vert)
-    .addGsh(floor_geom)
-    .addFsh(ambient_frag)
-    .build({"projection", "view"});
+    .build({"projection", "view", "light_pos", "depthMVP", "use_shadow_map", "ambient" });
 
   // init VAO/VBO/EBO and upload data
   CHECK_GL_ERROR(glGenVertexArrays(1, &vao));
@@ -55,21 +46,15 @@ void FloorRenderer::draw_shadow() {
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
 }
 
-void FloorRenderer::draw_ambient(const glm::mat4& projection, const glm::mat4& view) {
-  ambient_program.activate();
-  CHECK_GL_ERROR(glUniformMatrix4fv(ambient_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
-  CHECK_GL_ERROR(glUniformMatrix4fv(ambient_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
-  draw_shadow();
-}
-
 void FloorRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS>& light_pos, 
-    const std::array<glm::mat4, NUM_LIGHTS>& depthMVP, const bool use_shadow_map) {
+    const std::array<glm::mat4, NUM_LIGHTS>& depthMVP, const bool use_shadow_map, const bool ambient) {
   CHECK_GL_ERROR(glBindVertexArray(vao));
 
   program.activate();
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
   CHECK_GL_ERROR(glUniform1i(program.getUniform("use_shadow_map"), (int) use_shadow_map));
+  CHECK_GL_ERROR(glUniform1i(program.getUniform("ambient"), (int) ambient));
 
   for (unsigned i = 0; i < light_pos.size(); i++) {
     std::string loc_name = "light_pos[" +  std::to_string(i) + "]";

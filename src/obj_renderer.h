@@ -47,15 +47,13 @@ class ObjRenderer {
   ShaderProgram program;
   ShaderProgram silhouette_program;
   ShaderProgram volume_program;
-  ShaderProgram ambient_program;
 public:
   ObjRenderer();
 
   bool load(const std::string& file);
-  void draw(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS>& light_pos);
+  void draw(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS>& light_pos, bool ambient);
   void draw_silhouette(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
   void draw_volume(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
   void draw_shadow();
-  void draw_ambient(const glm::mat4& projection, const glm::mat4& view);
 };
 #endif
