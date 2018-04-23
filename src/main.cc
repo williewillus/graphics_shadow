@@ -88,11 +88,11 @@ void read_args(int argc, char *argv[], ObjRenderer& obj_renderer) {
 
 static std::array<glm::vec4, NUM_LIGHTS> light_positions = {
   glm::vec4 { 0.0f, 3.0f, 3.0f, 1.0f },
-  glm::vec4 { 0.0f, 3.0f, -3.0f, 1.0f },
+  // glm::vec4 { 0.0f, 3.0f, -3.0f, 1.0f },
 };
 static std::array<glm::vec4, NUM_LIGHTS> light_directions = {
   glm::normalize(glm::vec4(0.0, -1.0, -1.0, 0)),
-  glm::normalize(glm::vec4(0.0, -1.0, 1.0, 0)),
+  // glm::normalize(glm::vec4(0.0, -1.0, 1.0, 0)),
 };
 
 int main(int argc, char *argv[]) {
@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
 
   std::array<DepthMap, NUM_LIGHTS> light_depth_maps {
     DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 0),
-      DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 1),
+    // DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 1),
   };
 
   MatrixPointers mats; // Define MatrixPointers here for lambda to capture
@@ -139,11 +139,9 @@ int main(int argc, char *argv[]) {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_MULTISAMPLE);
-    glEnable(GL_BLEND);
     glEnable(GL_CULL_FACE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     glDepthFunc(GL_LEQUAL);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glCullFace(GL_BACK);
 
     gui.updateMotion();
@@ -189,10 +187,11 @@ int main(int argc, char *argv[]) {
           glBlendEquation(GL_FUNC_ADD); // blend additively
           float factor = 1 / static_cast<float>(NUM_LIGHTS);
           glBlendColor(factor, factor, factor, factor);
-          glBlendFunc(GL_CONSTANT_COLOR, GL_CONSTANT_COLOR);
+          glBlendFunc(GL_CONSTANT_COLOR, GL_ZERO);
           //glBlendFunc(GL_ONE, GL_ONE);
 
           glDepthMask(GL_TRUE); // depth writing on
+          glClear(GL_DEPTH_BUFFER_BIT);
           glDrawBuffer(GL_BACK);// draw colors
           glStencilMask(GL_FALSE); // stencil writing off
           glStencilFunc(GL_EQUAL, 0x0, 0xFF); // draw only if stencil buf 0
@@ -205,6 +204,22 @@ int main(int argc, char *argv[]) {
         glDisable(GL_STENCIL_TEST);
       }
 
+      // hack
+      {
+        glDepthMask(GL_TRUE);    // enable depth writing
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glDrawBuffer(GL_NONE);   // don't draw colors
+
+        shadow_program.activate();
+        CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
+        CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &gui.get_view()[0][0]));
+        obj_renderer.draw_shadow();
+        floor_renderer.draw_shadow();
+
+        glDrawBuffer(GL_BACK);   // don't draw colors
+        glDepthMask(GL_FALSE);    // enable depth writing
+      }
+
       // render the scene another time for some ambient lighting
       {
         CHECK_GL_ERROR(glEnable(GL_BLEND));
@@ -212,7 +227,6 @@ int main(int argc, char *argv[]) {
         CHECK_GL_ERROR(glBlendFunc(GL_ONE, GL_ONE));
         floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), !use_shadow_volumes, true);
         obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, true);
-        //obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions[gui.get_current_silhouette()]);
       }
       glDisable(GL_BLEND);
       glDepthMask(GL_TRUE);
