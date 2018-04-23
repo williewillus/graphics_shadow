@@ -57,6 +57,9 @@ void GUI::keyCallback(GLFWwindow* window, int key, int scancode, int action, int
   } else if (key == GLFW_KEY_X && action == GLFW_PRESS) {
     show_silhouettes_ = !show_silhouettes_;
     std::cout << "Silhouettes: " << (show_silhouettes_ ? "shown" : "hidden") << std::endl;
+  } else if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
+    use_shadow_volumes_ = !use_shadow_volumes_;
+    std::cout << "Shadow mode: " << (use_shadow_volumes_ ? "shadow volume" : "shadow map") << std::endl;
   }
 
 

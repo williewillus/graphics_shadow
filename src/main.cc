@@ -149,9 +149,8 @@ int main(int argc, char *argv[]) {
     gui.updateMotion();
     gui.updateMatrices();
     mats = gui.getMatrixPointers();
-    bool use_shadow_volumes = false;
+    bool use_shadow_volumes = gui.use_shadow_volumes();
 
-    // todo move bool to gui, split into two methods
     if (use_shadow_volumes) {
       glDepthMask(GL_TRUE);
       glDrawBuffer(GL_NONE);

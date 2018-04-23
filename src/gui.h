@@ -57,6 +57,7 @@ public:
   unsigned get_current_silhouette() const { return current_silhouette_idx; }
   bool show_silhouettes() const { return show_silhouettes_; }
   bool show_preview() const { return show_preview_; }
+  bool use_shadow_volumes() const { return use_shadow_volumes_; }
 
   void updateMotion();
   
@@ -70,6 +71,7 @@ private:
   bool show_preview_ = true;
   bool show_silhouettes_ = true;
   bool drag_state_ = false;
+  bool use_shadow_volumes_= true;
   int current_button_ = -1;
   float roll_speed_ = M_PI / 64.0f;
   float last_x_ = 0.0f, last_y_ = 0.0f, current_x_ = 0.0f, current_y_ = 0.0f;
