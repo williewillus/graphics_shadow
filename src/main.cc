@@ -152,8 +152,9 @@ int main(int argc, char *argv[]) {
     bool use_shadow_volumes = gui.use_shadow_volumes();
 
     if (use_shadow_volumes) {
-      glDepthMask(GL_TRUE);
-      glDrawBuffer(GL_NONE);
+      glDepthMask(GL_TRUE);    // enable depth writing
+      glDrawBuffer(GL_NONE);   // don't draw colors
+      glStencilMask(GL_FALSE); // disable stencil writing
 
       // first, draw the scene into the depth buffer
       shadow_program.activate();
@@ -166,29 +167,31 @@ int main(int argc, char *argv[]) {
 
       // Now draw all shadow volumes for all lights into stencil buffer
       glEnable(GL_STENCIL_TEST);
-      glDrawBuffer(GL_NONE);   // don't draw colors
       glDepthMask(GL_FALSE);   // disable depth writing
+      glDrawBuffer(GL_NONE);   // don't draw colors
+      glStencilMask(GL_TRUE);  // enable stencil writing
+      glEnable(GL_DEPTH_CLAMP);
+      glDisable(GL_CULL_FACE); // don't cull back of volume
+      
+      glStencilFunc(GL_ALWAYS, 0, 0xff); // depth-fail method
+      glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+      glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+
       for (unsigned i = 0; i < NUM_LIGHTS; i++) {
         const auto& light_pos = light_positions.at(i);
 
-        glEnable(GL_DEPTH_CLAMP);
-        glDisable(GL_CULL_FACE); // don't cull back of volume
-
-        glStencilFunc(GL_ALWAYS, 0, 0xff);
-        glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-        glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
-
+        
         // draw volume into stencil buffer
         obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_pos);
       }
 
       glDepthMask(GL_TRUE); 
-      glClear(GL_DEPTH_BUFFER_BIT);
       glDisable(GL_DEPTH_CLAMP);
       glEnable(GL_CULL_FACE);
 
       // draw scene for real now. Areas in shadow are masked out by stencil buffer
       CHECK_GL_ERROR(glDrawBuffer(GL_BACK)); // actually draw colors to screen
+      glStencilMask(GL_FALSE);
       glStencilFunc(GL_EQUAL, 0x0, 0xFF);
       glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
 
@@ -196,6 +199,7 @@ int main(int argc, char *argv[]) {
       obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
       glDisable(GL_STENCIL_TEST);
 
+      /*
       // hacks
       {
         glDrawBuffer(GL_NONE);
@@ -212,6 +216,7 @@ int main(int argc, char *argv[]) {
         floor_renderer.draw_shadow();
         glDrawBuffer(GL_BACK);
       }
+      */
 
       // render the scene another time for some ambient lighting
       CHECK_GL_ERROR(glEnable(GL_BLEND));
@@ -222,6 +227,7 @@ int main(int argc, char *argv[]) {
 
       glDisable(GL_BLEND);
       glDepthMask(GL_TRUE);
+      glStencilMask(GL_TRUE);
     } else {
       std::array<glm::mat4, NUM_LIGHTS> depthMVP;
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
