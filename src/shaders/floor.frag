@@ -61,7 +61,7 @@ void main() {
     dot_nl = clamp(dot_nl, 0.0, 1.0);
     color += dot_nl * base_color;
   }
-  color /= 2;
+  color /= NUM_LIGHTS;
   color = clamp(color, 0.0, 1.0);
 
   if (use_shadow_map == 1) {
