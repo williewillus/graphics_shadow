@@ -10,7 +10,7 @@ uniform vec4 light_pos;
 
 const int front_vertices[3] = int[3](0, 2, 4);
 const int back_vertices[3] = int[3](0, 4, 2);
-float EPSILON = 0.0001;
+float EPSILON = 0.01;
 
 void quad(vec4 a, vec4 b) {
   vec4 light_a_dir = a - light_pos / light_pos.w;
