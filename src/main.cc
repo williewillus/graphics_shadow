@@ -166,11 +166,11 @@ int main(int argc, char *argv[]) {
 
       // Now draw all shadow volumes for all lights into stencil buffer
       glEnable(GL_STENCIL_TEST);
+      glDrawBuffer(GL_NONE);   // don't draw colors
+      glDepthMask(GL_FALSE);   // disable depth writing
       for (unsigned i = 0; i < NUM_LIGHTS; i++) {
         const auto& light_pos = light_positions.at(i);
 
-        glDrawBuffer(GL_NONE);   // don't draw colors
-        glDepthMask(GL_FALSE);   // disable depth writing
         glEnable(GL_DEPTH_CLAMP);
         glDisable(GL_CULL_FACE); // don't cull back of volume
 
@@ -182,6 +182,8 @@ int main(int argc, char *argv[]) {
         obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_pos);
       }
 
+      glDepthMask(GL_TRUE); 
+      glClear(GL_DEPTH_BUFFER_BIT);
       glDisable(GL_DEPTH_CLAMP);
       glEnable(GL_CULL_FACE);
 
@@ -193,6 +195,23 @@ int main(int argc, char *argv[]) {
       floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), !use_shadow_volumes);
       obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
       glDisable(GL_STENCIL_TEST);
+
+      // hacks
+      {
+        glDrawBuffer(GL_NONE);
+        glDepthMask(GL_TRUE); 
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        // first, draw the scene into the depth buffer
+        shadow_program.activate();
+
+        CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
+        CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("view"), 1, GL_FALSE, &gui.get_view()[0][0]));
+
+        obj_renderer.draw_shadow();
+        floor_renderer.draw_shadow();
+        glDrawBuffer(GL_BACK);
+      }
 
       // render the scene another time for some ambient lighting
       CHECK_GL_ERROR(glEnable(GL_BLEND));
