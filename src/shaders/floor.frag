@@ -1,12 +1,16 @@
 R"zzz(
 #version 330 core
 
-in vec4 light_direction;
+in vec4 normal;
 in vec3 world_position;
 
 out vec4 fragment_color;
 
 const int NUM_LIGHTS = 2;
+const vec3 gray = vec3(0.97, 0.97, 0.97);
+const vec3 white = vec3(1.0, 1.0, 1.0);
+
+uniform vec4 light_pos[NUM_LIGHTS];
 uniform mat4 depthMVP[NUM_LIGHTS];
 uniform sampler2DArray shadow_map;
 uniform int use_shadow_map;
@@ -36,22 +40,23 @@ float compute_shadow(vec4 coord_, int idx) {
 }
 
 void main() {
-  vec4 gray = vec4(0.97, 0.97, 0.97, 1.0);
-  vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
+  vec3 base_color = vec3(1.0, 0.0, 1.0);
+  vec3 color = vec3(0, 0, 0);
 
   if (floor(mod(world_position[0], 2)) == 1) {
-      if (floor(mod(world_position[2], 2)) == 0) {
-          fragment_color = white;
-      } else {
-          fragment_color = gray;
-      }
+    base_color = floor(mod(world_position[2], 2)) == 0 ? white : gray;
   } else {
-      if (floor(mod(world_position[2], 2)) == 0) {
-          fragment_color = gray;
-      } else {
-          fragment_color = white;
-      }
+    base_color = floor(mod(world_position[2], 2)) == 0 ? gray : white;
   }
+  
+  for (int i = 0; i < NUM_LIGHTS; i++) {
+    vec4 light_direction = light_pos[i] - vec4(world_position, 1);
+    float dot_nl = dot(normalize(light_direction), normalize(normal));
+    dot_nl = clamp(dot_nl, 0.0, 1.0);
+    color += dot_nl * base_color;
+  }
+  color /= 2;
+  color = clamp(color, 0.0, 1.0);
 
   if (use_shadow_map == 1) {
     float shadow = 0;
@@ -59,10 +64,10 @@ void main() {
       vec4 shadow_coord = depthMVP[i] * vec4(world_position, 1);
       shadow += 0.75 * compute_shadow(shadow_coord, i);
     }
-    fragment_color = vec4((1 - shadow) * fragment_color.rgb, 1.0);
+    fragment_color = vec4((1 - shadow) * color, 1.0);
   }
   else {
-    fragment_color = vec4(fragment_color.rgb, 1.0);
+    fragment_color = vec4(color, 1.0);
   }
 }
 )zzz"

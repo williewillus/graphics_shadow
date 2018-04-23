@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
     gui.updateMotion();
     gui.updateMatrices();
     mats = gui.getMatrixPointers();
-    bool use_shadow_volumes = true;
+    bool use_shadow_volumes = false;
 
     // todo move bool to gui, split into two methods
     if (use_shadow_volumes) {
@@ -194,13 +194,14 @@ int main(int argc, char *argv[]) {
       glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP);
 
       // temporary light_pos. should probably be replaced
-      floor_renderer.draw(gui.get_projection(), gui.get_view(), glm::vec4(100, 100, 100, 1.0), std::array<glm::mat4, NUM_LIGHTS>(), !use_shadow_volumes);
+      floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), !use_shadow_volumes);
       // TODO same here?
       obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
       CHECK_GL_ERROR(glDisable(GL_BLEND));
 
       glDisable(GL_STENCIL_TEST);
-      // render the scene another time for some ambient lighting
+
+      // TODO: render the scene another time for some ambient lighting
     } else {
       std::array<glm::mat4, NUM_LIGHTS> depthMVP;
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
@@ -233,7 +234,7 @@ int main(int argc, char *argv[]) {
 
       // draw floor
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
-      floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions.at(0), depthMVP, !use_shadow_volumes);
+      floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, depthMVP, !use_shadow_volumes);
 
       // draw preview
       if (gui.show_preview()) {
