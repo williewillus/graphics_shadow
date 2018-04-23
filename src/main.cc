@@ -182,8 +182,6 @@ int main(int argc, char *argv[]) {
         obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_pos);
       }
 
-      glDepthMask(GL_TRUE); // reenable depth writing
-      glClear(GL_DEPTH_BUFFER_BIT);
       glDisable(GL_DEPTH_CLAMP);
       glEnable(GL_CULL_FACE);
 
@@ -194,7 +192,6 @@ int main(int argc, char *argv[]) {
 
       floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), !use_shadow_volumes);
       obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions);
-      CHECK_GL_ERROR(glDisable(GL_BLEND));
       glDisable(GL_STENCIL_TEST);
 
       // render the scene another time for some ambient lighting
@@ -203,6 +200,9 @@ int main(int argc, char *argv[]) {
       CHECK_GL_ERROR(glBlendFunc(GL_ONE, GL_ONE));
       floor_renderer.draw_ambient(gui.get_projection(), gui.get_view());
       obj_renderer.draw_ambient(gui.get_projection(), gui.get_view());
+
+      glDisable(GL_BLEND);
+      glDepthMask(GL_TRUE);
     } else {
       std::array<glm::mat4, NUM_LIGHTS> depthMVP;
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
