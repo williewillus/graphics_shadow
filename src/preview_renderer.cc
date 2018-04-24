@@ -19,6 +19,7 @@ PreviewRenderer::PreviewRenderer() {
     .addVsh(preview_vert)
     .addFsh(preview_frag)
     .build({ "near_plane", "far_plane", "idx" });
+
   combine_program
     .addVsh(preview_vert)
     .addFsh(volume_combine_frag)
