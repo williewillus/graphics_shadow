@@ -21,7 +21,9 @@ class PreviewRenderer {
   GLuint ebo;
 
   ShaderProgram program;
+  ShaderProgram combine_program;
 public:
   PreviewRenderer();
   void draw(const float& kNear, const float& kFar, unsigned current_preview);
+  void draw_combine();
 };

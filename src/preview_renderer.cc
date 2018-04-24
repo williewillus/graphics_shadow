@@ -11,11 +11,18 @@ PreviewRenderer::PreviewRenderer() {
   const char* preview_frag = 
   #include "shaders/preview.frag"
   ;
+  const char* volume_combine_frag =
+  #include "shaders/volume_combine.frag"
+  ;
 
   program
     .addVsh(preview_vert)
     .addFsh(preview_frag)
     .build({ "near_plane", "far_plane", "idx" });
+  combine_program
+    .addVsh(preview_vert)
+    .addFsh(volume_combine_frag)
+    .build({});
 
   // init VAO/VBO/EBO and upload data
   CHECK_GL_ERROR(glGenVertexArrays(1, &vao));
@@ -45,5 +52,11 @@ void PreviewRenderer::draw(const float& kNear, const float& kFar, unsigned curre
   CHECK_GL_ERROR(glUniform1fv(program.getUniform("far_plane"), 1, &kFar));
   CHECK_GL_ERROR(glUniform1i(program.getUniform("idx"), current_preview));
 
+  CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
+}
+
+void PreviewRenderer::draw_combine() {
+  combine_program.activate();
+  CHECK_GL_ERROR(glBindVertexArray(vao));
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
 }

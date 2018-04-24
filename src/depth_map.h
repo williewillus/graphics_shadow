@@ -12,3 +12,10 @@ class DepthMap {
 
   void begin_capture();
 };
+
+class TextureToRender {
+  GLuint fbo;
+ public:
+  TextureToRender(GLuint width, GLuint height, GLuint depth_tex_, GLuint layer);
+  void begin_capture();
+};
