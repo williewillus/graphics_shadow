@@ -173,7 +173,7 @@ int main(int argc, char *argv[]) {
 	  volume_textures.at(i).begin_capture();
 
 	  glDepthMask(GL_TRUE);    // enable depth writing
-	  glDrawBuffer(GL_NONE);   // don't draw colors
+	  glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);   // don't draw colors
 	  glStencilMask(GL_FALSE); // disable stencil writing
 
 	  shadow_program.activate();
