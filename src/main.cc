@@ -211,7 +211,6 @@ int main(int argc, char *argv[]) {
       CHECK_GL_ERROR(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
       preview_renderer.draw_combine();
 
-      /*
       // render the scene another time for some ambient lighting
       {
       CHECK_GL_ERROR(glEnable(GL_BLEND));
@@ -221,7 +220,6 @@ int main(int argc, char *argv[]) {
       obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, true);
       //obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions[gui.get_current_silhouette()]);
       }
-      */
     } else {
       std::array<glm::mat4, NUM_LIGHTS> depthMVP;
       CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));

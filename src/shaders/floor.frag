@@ -10,6 +10,10 @@ const int NUM_LIGHTS = 2;
 const vec3 gray = vec3(0.97, 0.97, 0.97);
 const vec3 white = vec3(1.0, 1.0, 1.0);
 
+const float constant_coefficient = 0.5;
+const float linear_coefficient = 0.25;
+const float quadratic_coefficient = 0.05;
+
 uniform vec4 light_pos[NUM_LIGHTS];
 uniform mat4 depthMVP[NUM_LIGHTS];
 uniform sampler2DArray shadow_map;
@@ -57,11 +61,15 @@ void main() {
 
   for (int i = 0; i < NUM_LIGHTS; i++) {
     vec4 light_direction = light_pos[i] - vec4(world_position, 1);
+    float light_distance = length(light_direction);
     float dot_nl = dot(normalize(light_direction), normalize(normal));
-    dot_nl = clamp(dot_nl, 0.0, 1.0);
+
+    float denom = constant_coefficient + linear_coefficient * light_distance + quadratic_coefficient * light_distance * light_distance;
+
+    float attenuation = min(1.0, 1.0/denom);
+    dot_nl *= attenuation; 
     color += dot_nl * base_color;
   }
-  color /= NUM_LIGHTS;
   color = clamp(color, 0.0, 1.0);
 
   if (use_shadow_map == 1) {
