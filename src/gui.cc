@@ -28,6 +28,7 @@ GUI::GUI(GLFWwindow *window)
 
 GUI::~GUI() {}
 
+extern std::array<glm::vec4, NUM_LIGHTS> light_positions;
 void GUI::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
     glfwSetWindowShouldClose(window_, GL_TRUE);
@@ -54,6 +55,24 @@ void GUI::keyCallback(GLFWwindow* window, int key, int scancode, int action, int
   } else if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
     use_shadow_volumes_ = !use_shadow_volumes_;
     std::cout << "Shadow mode: " << (use_shadow_volumes_ ? "shadow volume" : "shadow map") << std::endl;
+  } else if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
+    light_positions[current_light][0] -= 1;
+    std::cout << "light pos: " << glm::to_string(light_positions[current_light]) << std::endl;
+  } else if (key == GLFW_KEY_2 && action == GLFW_PRESS) {
+    light_positions[current_light][0] += 1;
+    std::cout << "light pos: " << glm::to_string(light_positions[current_light]) << std::endl;
+  } else if (key == GLFW_KEY_3 && action == GLFW_PRESS) {
+    light_positions[current_light][1] -= 1;
+    std::cout << "light pos: " << glm::to_string(light_positions[current_light]) << std::endl;
+  } else if (key == GLFW_KEY_4 && action == GLFW_PRESS) {
+    light_positions[current_light][1] += 1;
+    std::cout << "light pos: " << glm::to_string(light_positions[current_light]) << std::endl;
+  } else if (key == GLFW_KEY_5 && action == GLFW_PRESS) {
+    light_positions[current_light][2] -= 1;
+    std::cout << "light pos: " << glm::to_string(light_positions[current_light]) << std::endl;
+  } else if (key == GLFW_KEY_6 && action == GLFW_PRESS) {
+    light_positions[current_light][2] += 1;
+    std::cout << "light pos: " << glm::to_string(light_positions[current_light]) << std::endl;
   }
 
 
