@@ -103,13 +103,14 @@ static PreviewRenderer preview_renderer;
 
 static void render_shadow_volume(GLuint volume_tex, std::array<TextureToRender, NUM_LIGHTS>& volume_textures, ShaderProgram& shadow_program) {
   CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_tex));
+
   for (unsigned i = 0; i < NUM_LIGHTS; i++) {
     volume_textures.at(i).begin_capture();
 
     // 1. draw scene into depth buffer
-    glDepthMask(GL_TRUE);    // enable depth writing
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);   // don't draw colors
-    glStencilMask(0); // disable stencil writing
+    CHECK_GL_ERROR(glDepthMask(GL_TRUE));
+    CHECK_GL_ERROR(glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE));
+    CHECK_GL_ERROR(glStencilMask(0));
 
     shadow_program.activate();
     CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
@@ -118,16 +119,18 @@ static void render_shadow_volume(GLuint volume_tex, std::array<TextureToRender, 
     floor_renderer.draw_shadow();
 
     // 2. draw volume into stencil buffer
-    glEnable(GL_STENCIL_TEST);
-    glDepthMask(GL_FALSE);   // disable depth writing
+    CHECK_GL_ERROR(glDepthMask(GL_FALSE));
     CHECK_GL_ERROR(glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE));
-    glStencilMask(0xff);  // enable stencil writing
-    glEnable(GL_DEPTH_CLAMP);
-    glDisable(GL_CULL_FACE); // don't cull back of volume
+    CHECK_GL_ERROR(glStencilMask(0xff));
 
-    glStencilFunc(GL_ALWAYS, 0, 0xff); // depth-fail method
-    glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-    glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+    CHECK_GL_ERROR(glEnable(GL_STENCIL_TEST));
+    CHECK_GL_ERROR(glEnable(GL_DEPTH_CLAMP));
+    CHECK_GL_ERROR(glDisable(GL_CULL_FACE));
+
+    // depth fail method
+    CHECK_GL_ERROR(glStencilFunc(GL_ALWAYS, 0, 0xff));
+    CHECK_GL_ERROR(glStencilOpSeparate(GL_BACK, GL_KEEP, GL_INCR_WRAP, GL_KEEP));
+    CHECK_GL_ERROR(glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP));
 
     const auto& light_pos = light_positions.at(i);
     obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_pos);
@@ -136,15 +139,18 @@ static void render_shadow_volume(GLuint volume_tex, std::array<TextureToRender, 
     CHECK_GL_ERROR(glDepthMask(GL_TRUE)); // depth writing on
     CHECK_GL_ERROR(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
     CHECK_GL_ERROR(glStencilMask(0)); // stencil writing off
+
     CHECK_GL_ERROR(glStencilFunc(GL_EQUAL, 0x0, 0xFF)); // draw only if stencil buf 0
     CHECK_GL_ERROR(glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP));
     floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), false, false);
     obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, false);
-    glDisable(GL_STENCIL_TEST);
+
+    CHECK_GL_ERROR(glDisable(GL_STENCIL_TEST));
   }
 
+  // draw the sum of all textures together
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
-  glViewport(0, 0, window_width, window_height);
+  CHECK_GL_ERROR(glViewport(0, 0, window_width, window_height));
   CHECK_GL_ERROR(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
   preview_renderer.draw_combine();
 }
@@ -193,11 +199,12 @@ static void render_shadow_map(GLuint map_depth_tex, std::array<DepthMap, NUM_LIG
 
 int main(int argc, char *argv[]) {
   const char* shadow_vert =
-#include "shaders/shadow.vert"
+  #include "shaders/shadow.vert"
     ;
   const char* shadow_frag =
-#include "shaders/shadow.frag"
+  #include "shaders/shadow.frag"
     ;
+
   ShaderProgram shadow_program;
   shadow_program
     .addVsh(shadow_vert)
@@ -227,26 +234,26 @@ int main(int argc, char *argv[]) {
   std::array<DepthMap, NUM_LIGHTS> light_depth_maps {
     DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 0),
       DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 1),
-      };
+  };
 
   std::array<TextureToRender, NUM_LIGHTS> volume_textures {
     TextureToRender(window_width, window_height, volume_tex, 0),
       TextureToRender(window_width, window_height, volume_tex, 1),
-      };
+  };
 
   while (!glfwWindowShouldClose(window)) {
     // Setup some basic window stuff.
     glfwGetFramebufferSize(window, &window_width, &window_height);
-    glViewport(0, 0, window_width, window_height);
-    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_BLEND);
-    glEnable(GL_CULL_FACE);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-    glDepthFunc(GL_LEQUAL);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glCullFace(GL_BACK);
+    CHECK_GL_ERROR(glViewport(0, 0, window_width, window_height));
+    CHECK_GL_ERROR(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
+    CHECK_GL_ERROR(glEnable(GL_DEPTH_TEST));
+    CHECK_GL_ERROR(glEnable(GL_MULTISAMPLE));
+    CHECK_GL_ERROR(glEnable(GL_BLEND));
+    CHECK_GL_ERROR(glEnable(GL_CULL_FACE));
+    CHECK_GL_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+    CHECK_GL_ERROR(glDepthFunc(GL_LEQUAL));
+    CHECK_GL_ERROR(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+    CHECK_GL_ERROR(glCullFace(GL_BACK));
 
     gui.updateMotion();
     gui.updateMatrices();
