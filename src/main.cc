@@ -173,7 +173,7 @@ int main(int argc, char *argv[]) {
         // 1. draw scene into depth buffer
         glDepthMask(GL_TRUE);    // enable depth writing
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);   // don't draw colors
-        glStencilMask(GL_FALSE); // disable stencil writing
+        glStencilMask(0); // disable stencil writing
 
         shadow_program.activate();
         CHECK_GL_ERROR(glUniformMatrix4fv(shadow_program.getUniform("projection"), 1, GL_FALSE, &gui.get_projection()[0][0]));
@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
         glEnable(GL_STENCIL_TEST);
         glDepthMask(GL_FALSE);   // disable depth writing
         CHECK_GL_ERROR(glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE));
-        glStencilMask(GL_TRUE);  // enable stencil writing
+        glStencilMask(0xff);  // enable stencil writing
         glEnable(GL_DEPTH_CLAMP);
         glDisable(GL_CULL_FACE); // don't cull back of volume
 
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
         // 3. draw scene for real
         CHECK_GL_ERROR(glDepthMask(GL_TRUE)); // depth writing on
         CHECK_GL_ERROR(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
-        CHECK_GL_ERROR(glStencilMask(GL_FALSE)); // stencil writing off
+        CHECK_GL_ERROR(glStencilMask(0)); // stencil writing off
         CHECK_GL_ERROR(glStencilFunc(GL_EQUAL, 0x0, 0xFF)); // draw only if stencil buf 0
         CHECK_GL_ERROR(glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP));
         floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), !use_shadow_volumes, false);
