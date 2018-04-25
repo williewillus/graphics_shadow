@@ -18,7 +18,7 @@ void DepthMap::begin_capture() {
   CHECK_GL_ERROR(glClear(GL_DEPTH_BUFFER_BIT));
 }
 
-TextureToRender::TextureToRender(GLuint width, GLuint height, GLuint tex_, GLuint layer) {
+TextureToRender::TextureToRender(GLuint width, GLuint height, GLuint tex_, GLuint layer) : width(width), height(height) {
   CHECK_GL_ERROR(glGenFramebuffers(1, &fbo));
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, fbo));
 
@@ -39,6 +39,7 @@ TextureToRender::TextureToRender(GLuint width, GLuint height, GLuint tex_, GLuin
   
 void TextureToRender::begin_capture() {
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, fbo));
+  CHECK_GL_ERROR(glViewport(0, 0, width, height));
   CHECK_GL_ERROR(glDepthMask(GL_TRUE));
   CHECK_GL_ERROR(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
   CHECK_GL_ERROR(glStencilMask(GL_TRUE));

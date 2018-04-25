@@ -208,6 +208,7 @@ int main(int argc, char *argv[]) {
       }
 
       CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+      glViewport(0, 0, window_width, window_height);
       CHECK_GL_ERROR(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
       preview_renderer.draw_combine();
 
