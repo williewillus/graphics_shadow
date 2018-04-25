@@ -71,6 +71,7 @@ void main() {
       shadow += 0.75 * compute_shadow(shadow_coord, i);
     }
     fragment_color = vec4((1 - shadow) * color, 1.0);
+    fragment_color *= NUM_LIGHTS;
   }
   else {
     fragment_color = vec4(color, 1.0);
