@@ -53,8 +53,7 @@ public:
 
   const glm::mat4& get_view()       const { return view_matrix_; }
   const glm::mat4& get_projection() const { return projection_matrix_; }
-  unsigned get_current_preview() const { return current_preview; }
-  unsigned get_current_silhouette() const { return current_silhouette_idx; }
+  unsigned get_current_light() const { return current_light; }
   bool show_silhouettes() const { return show_silhouettes_; }
   bool show_preview() const { return show_preview_; }
   bool use_shadow_volumes() const { return use_shadow_volumes_; }
@@ -66,8 +65,7 @@ private:
 
   int window_width_, window_height_;
 
-  unsigned current_preview = 0;
-  unsigned current_silhouette_idx = 0;
+  unsigned current_light = 0;
   bool show_preview_ = true;
   bool show_silhouettes_ = false;
   bool drag_state_ = false;

@@ -147,7 +147,7 @@ static void render_shadow_volume(GLuint volume_tex, std::array<TextureToRender, 
     CHECK_GL_ERROR(glDisable(GL_STENCIL_TEST));
 
     if (gui.show_silhouettes()) {
-      obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
+      obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_light()));
     }
   }
 
@@ -193,7 +193,7 @@ static void render_shadow_map(GLuint map_depth_tex, std::array<DepthMap, NUM_LIG
   if (gui.show_preview()) {
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
     glViewport(5, 5, 640, 480);
-    preview_renderer.draw(kNear, kFar, gui.get_current_preview());
+    preview_renderer.draw(kNear, kFar, gui.get_current_light());
   }
 }
 
