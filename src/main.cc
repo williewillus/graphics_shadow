@@ -144,7 +144,9 @@ static void render_shadow_volume(GLuint volume_tex, std::array<TextureToRender, 
     CHECK_GL_ERROR(glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP));
     floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), false, false);
     obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, false);
-
+    if (gui.show_silhouettes()) {
+      obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
+    }
     CHECK_GL_ERROR(glDisable(GL_STENCIL_TEST));
   }
 
@@ -181,9 +183,6 @@ static void render_shadow_map(GLuint map_depth_tex, std::array<DepthMap, NUM_LIG
 
   // draw object
   obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, false);
-  if (gui.show_silhouettes()) {
-    obj_renderer.draw_silhouette(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_silhouette()));
-  }
 
   // draw floor
   CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));

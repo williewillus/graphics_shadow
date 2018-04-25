@@ -69,7 +69,7 @@ private:
   unsigned current_preview = 0;
   unsigned current_silhouette_idx = 0;
   bool show_preview_ = true;
-  bool show_silhouettes_ = true;
+  bool show_silhouettes_ = false;
   bool drag_state_ = false;
   bool use_shadow_volumes_= true;
   int current_button_ = -1;
