@@ -4,7 +4,7 @@ R"zzz(
 out vec4 fragment_color;
 
 void main() {
-  fragment_color = vec4(1, 0, 0, 0.8);
+  fragment_color = vec4(1, 0, 0, 0.4);
 }
 
 )zzz"
