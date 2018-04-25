@@ -40,6 +40,18 @@ TextureToRender::TextureToRender(GLuint width, GLuint height, GLuint tex_, GLuin
 void TextureToRender::begin_capture() {
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, fbo));
   CHECK_GL_ERROR(glViewport(0, 0, width, height));
+
+  CHECK_GL_ERROR(glClearColor(0.0f, 0.0f, 0.0f, 0.0f));
+  CHECK_GL_ERROR(glEnable(GL_DEPTH_TEST));
+  CHECK_GL_ERROR(glEnable(GL_MULTISAMPLE));
+  CHECK_GL_ERROR(glEnable(GL_BLEND));
+  CHECK_GL_ERROR(glEnable(GL_CULL_FACE));
+  CHECK_GL_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
+  CHECK_GL_ERROR(glDepthFunc(GL_LEQUAL));
+  CHECK_GL_ERROR(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+  CHECK_GL_ERROR(glCullFace(GL_BACK));
+
+
   CHECK_GL_ERROR(glDepthMask(GL_TRUE));
   CHECK_GL_ERROR(glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE));
   CHECK_GL_ERROR(glStencilMask(GL_TRUE));
