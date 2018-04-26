@@ -24,7 +24,7 @@ float compute_shadow(vec4 coord_, int idx) {
   }
 
   float shadow = 0.0;
-  float bias = 0.005;
+  float bias = 0.001;
 
   vec2 texel_size = 1.0 / textureSize(shadow_map, 0).xy;
   float current_depth = coord.z;
