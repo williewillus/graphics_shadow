@@ -16,9 +16,6 @@ ObjRenderer::ObjRenderer() {
   const char* obj_frag = 
   #include "shaders/obj.frag"
   ;
-  const char* silhouette_geom =
-  #include "shaders/silhouette.geom"
-  ;
   const char* silhouette_frag =
   #include "shaders/silhouette.frag"
   ;
