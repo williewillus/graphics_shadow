@@ -86,7 +86,7 @@ void read_args(int argc, char *argv[], ObjRenderer& obj_renderer) {
   }
 }
 
-static std::array<glm::vec4, NUM_LIGHTS> light_positions = {
+std::array<glm::vec4, NUM_LIGHTS> light_positions = {
   glm::vec4 { 0.0f, 3.0f, 3.0f, 1.0f },
   glm::vec4 { 0.0f, 3.0f, -3.0f, 1.0f },
 };
@@ -257,9 +257,11 @@ int main(int argc, char *argv[]) {
 
     gui.updateMotion();
     gui.updateMatrices();
-    bool use_shadow_volumes = gui.use_shadow_volumes();
+    for (unsigned i = 0; i < NUM_LIGHTS; i++) {
+      light_directions.at(i) = -glm::normalize(light_positions.at(i));
+    }
 
-    if (use_shadow_volumes) {
+    if (gui.use_shadow_volumes()) {
       render_shadow_volume(volume_tex, volume_textures, shadow_program);
     } else {
       render_shadow_map(map_depth_tex, light_depth_maps, shadow_program);
