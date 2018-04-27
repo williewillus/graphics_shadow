@@ -64,22 +64,19 @@ GLFWwindow *init_glefw() {
 void read_args(int argc, char *argv[], ObjRenderer& obj_renderer) {
   const struct option opts[] = {
     { "obj", required_argument, nullptr, 'o' },
-    { "pmd", required_argument, nullptr, 'p' },
+    { nullptr, 0, nullptr, 0 },
   };
   
   int c;
-  while ((c = getopt_long(argc, argv, "o:p:", opts, nullptr)) != -1) {
+  while ((c = getopt_long(argc, argv, "o:", opts, nullptr)) != -1) {
     switch (c) {
     case 'o': {
       if (!obj_renderer.load(optarg))
 	std::cerr << "Failed to load OBJ " << optarg << std::endl;
       break;
     }
-    case 'p': {
-      /* todo */ break;
-    }
     case '?': {
-      std::cerr << "Usage: '" << argv[0] << " --obj <OBJ file>' or '" << argv[0] << " --pmd <PMD file>'" << std::endl;
+      std::cerr << "Usage: '" << argv[0] << " --obj <OBJ file>'" << std::endl;
       std::exit(-1);
     }
     }
