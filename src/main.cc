@@ -98,9 +98,26 @@ static FloorRenderer floor_renderer;
 static ObjRenderer obj_renderer;
 static PreviewRenderer preview_renderer;
 
-static void render_shadow_volume(GLuint volume_tex, std::array<TextureToRender, NUM_LIGHTS>& volume_textures, ShaderProgram& shadow_program) {
+static GLuint make_volume_tex() {
+  GLuint volume_tex;
+  CHECK_GL_ERROR(glGenTextures(1, &volume_tex));
   CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_tex));
+  CHECK_GL_ERROR(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, window_width, window_height, NUM_LIGHTS));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE));
+  return volume_tex;
+}
 
+static void render_shadow_volume(ShaderProgram& shadow_program) {
+  static GLuint volume_tex = make_volume_tex();
+  static std::array<TextureToRender, NUM_LIGHTS> volume_textures {
+    TextureToRender(window_width, window_height, volume_tex, 0),
+      TextureToRender(window_width, window_height, volume_tex, 1),
+  };
+  
+  CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_tex));
   for (unsigned i = 0; i < NUM_LIGHTS; i++) {
     volume_textures.at(i).begin_capture();
 
@@ -155,7 +172,25 @@ static void render_shadow_volume(GLuint volume_tex, std::array<TextureToRender, 
   preview_renderer.draw_combine();
 }
 
-static void render_shadow_map(GLuint map_depth_tex, std::array<DepthMap, NUM_LIGHTS> light_depth_maps, ShaderProgram& shadow_program) {
+static GLuint make_map_tex() {
+  GLuint map_depth_tex;
+  CHECK_GL_ERROR(glGenTextures(1, &map_depth_tex));
+  CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
+  CHECK_GL_ERROR(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT16, shadow_map_width, shadow_map_height, NUM_LIGHTS));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE));
+  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE));
+  return map_depth_tex;
+}
+
+static void render_shadow_map(ShaderProgram& shadow_program) {
+  static GLuint map_depth_tex = make_map_tex();
+  static std::array<DepthMap, NUM_LIGHTS> light_depth_maps {
+    DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 0),
+      DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 1),
+  };
+  
   std::array<glm::mat4, NUM_LIGHTS> depthMVP;
   CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
   shadow_program.activate();
@@ -210,34 +245,7 @@ int main(int argc, char *argv[]) {
 
   read_args(argc, argv, obj_renderer);
 
-  GLuint map_depth_tex;
-  CHECK_GL_ERROR(glGenTextures(1, &map_depth_tex));
-  CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
-  CHECK_GL_ERROR(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT16, shadow_map_width, shadow_map_height, NUM_LIGHTS));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE));
-
-  GLuint volume_tex;
-  CHECK_GL_ERROR(glGenTextures(1, &volume_tex));
-  CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, volume_tex));
-  CHECK_GL_ERROR(glTexStorage3D(GL_TEXTURE_2D_ARRAY, 1, GL_RGB8, window_width, window_height, NUM_LIGHTS));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_S,GL_CLAMP_TO_EDGE));
-  CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D_ARRAY,GL_TEXTURE_WRAP_T,GL_CLAMP_TO_EDGE));
-
-  std::array<DepthMap, NUM_LIGHTS> light_depth_maps {
-    DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 0),
-      DepthMap(shadow_map_width, shadow_map_height, map_depth_tex, 1),
-  };
-
-  std::array<TextureToRender, NUM_LIGHTS> volume_textures {
-    TextureToRender(window_width, window_height, volume_tex, 0),
-      TextureToRender(window_width, window_height, volume_tex, 1),
-  };
-
+  
   while (!glfwWindowShouldClose(window)) {
     // Setup some basic window stuff.
     glfwGetFramebufferSize(window, &window_width, &window_height);
@@ -259,9 +267,9 @@ int main(int argc, char *argv[]) {
     }
 
     if (gui.use_shadow_volumes()) {
-      render_shadow_volume(volume_tex, volume_textures, shadow_program);
+      render_shadow_volume(shadow_program);
     } else {
-      render_shadow_map(map_depth_tex, light_depth_maps, shadow_program);
+      render_shadow_map(shadow_program);
     }
 
     // Poll and swap.
