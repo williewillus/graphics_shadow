@@ -8,6 +8,7 @@
 #include "preview_renderer.h"
 #include "obj_renderer.h"
 #include "depth_map.h"
+#include "ssao.h"
 
 #include <algorithm>
 #include <array>
@@ -229,6 +230,10 @@ static void render_shadow_map(ShaderProgram& shadow_program) {
   }
 }
 
+static void render_ssao() {
+  static SSAOManager manager {window_width, window_height};
+}
+
 int main(int argc, char *argv[]) {
   const char* shadow_vert =
   #include "shaders/shadow.vert"
@@ -266,6 +271,7 @@ int main(int argc, char *argv[]) {
       light_directions.at(i) = -glm::normalize(light_positions.at(i));
     }
 
+    render_ssao(); // todo temp
     if (gui.use_shadow_volumes()) {
       render_shadow_volume(shadow_program);
     } else {
