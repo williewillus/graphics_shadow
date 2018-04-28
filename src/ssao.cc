@@ -112,12 +112,31 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
   const char* obj_vert =
   #include "shaders/obj.vert"
   ;
+  const char* preview_vert =
+  #include "shaders/preview.vert"
+  ;
+  const char* ssao_frag =
+  #include "shaders/ssao.frag"
+  ;
+  const char* ssao_blur_frag =
+  #include "shaders/ssao_blur.frag"
+  ;
   
   ssao_geom_program
     .addVsh(obj_vert)
     .addGsh(obj_ssao_geom)
     .addFsh(obj_ssao_frag)
     .build({ "projection", "view" });
+
+  ssao_program
+    .addVsh(preview_vert)
+    .addFsh(ssao_frag)
+    .build({ "projection" });
+
+  ssao_blur_program
+    .addVsh(preview_vert)
+    .addFsh(ssao_blur_frag)
+    .build({});
 }
 
 void SSAOManager::begin_capture_geometry(const glm::mat4& projection, const glm::mat4& view) {

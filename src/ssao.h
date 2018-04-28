@@ -10,7 +10,7 @@ class SSAOManager {
   GLuint gbuffer, pos, normal;
   GLuint ssao_fbo, ssao_tex, ssao_blur_fbo, ssao_blur_tex;
   GLuint noise_tex;
-  ShaderProgram ssao_geom_program;
+  ShaderProgram ssao_geom_program, ssao_program, ssao_blur_program;
   std::vector<glm::vec3> samples;
  public:
   SSAOManager(unsigned width, unsigned height);
