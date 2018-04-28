@@ -239,7 +239,7 @@ static void render_ssao() {
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
   // Do the rest
-  manager.finish_render(preview_renderer);
+  manager.finish_render(gui.get_projection(), preview_renderer);
 }
 
 int main(int argc, char *argv[]) {

@@ -9,19 +9,21 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
     CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, gbuffer));
 
     // Buffers for position and normal
+    CHECK_GL_ERROR(glGenTextures(1, &pos_tex));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, pos_tex));
     CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
-    CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pos, 0));
+    CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pos_tex, 0));
 
-    CHECK_GL_ERROR(glGenTextures(1, &normal));
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal));
+    CHECK_GL_ERROR(glGenTextures(1, &normal_tex));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal_tex));
     CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
-    CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal, 0));
+    CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal_tex, 0));
 
     // Attach them
     GLuint attach[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
@@ -131,7 +133,7 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
   ssao_program
     .addVsh(preview_vert)
     .addFsh(ssao_frag)
-    .build({ "projection" });
+    .build({ "projection", "pos_tex", "normal_tex", "noise_tex" });
 
   ssao_blur_program
     .addVsh(preview_vert)
@@ -147,5 +149,52 @@ void SSAOManager::begin_capture_geometry(const glm::mat4& projection, const glm:
   CHECK_GL_ERROR(glUniformMatrix4fv(ssao_geom_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
 }
 
-void SSAOManager::finish_render(PreviewRenderer& pr) {
+void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr) {
+  // SSAO pass
+  {
+    CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo));
+    CHECK_GL_ERROR(glClear(GL_COLOR_BUFFER_BIT));
+    ssao_program.activate();
+    CHECK_GL_ERROR(glUniform1i(ssao_program.getUniform("pos_tex"), 0));
+    CHECK_GL_ERROR(glUniform1i(ssao_program.getUniform("normal_tex"), 1));
+    CHECK_GL_ERROR(glUniform1i(ssao_program.getUniform("noise_tex"), 2));
+    CHECK_GL_ERROR(glUniformMatrix4fv(ssao_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
+    for (unsigned i = 0; i < NUM_SAMPLES; i++) {
+      std::string name = "offsets[";
+      name += std::to_string(i);
+      name += "]";
+      CHECK_GL_ERROR(glUniform3fv(ssao_program.get_uniform_direct(name), 1, &samples[i][0]));
+    }
+    CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, pos_tex));
+    CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE1));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal_tex));
+    CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE2));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, noise_tex));
+    pr.draw_quad();
+  }
+
+  // Blur pass
+  {
+    CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo));
+    CHECK_GL_ERROR(glClear(GL_COLOR_BUFFER_BIT));
+    ssao_blur_program.activate();
+    CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_tex));
+    pr.draw_quad(); 
+  }
+
+  // Final pass
+  {
+    CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+    CHECK_GL_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+    CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, pos_tex));
+    CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE1));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal_tex));
+    CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE2));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
+
+    CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
+  }
 }
