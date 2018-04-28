@@ -15,6 +15,7 @@ void main() {
       accum += texture(to_blur, tex_coord + offset_uv).r;
     }
   }
+  fragment_color = accum / (2*RADIUS * 2*RADIUS);
 }
 
 )zzz"
