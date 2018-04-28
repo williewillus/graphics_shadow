@@ -52,7 +52,7 @@ ShaderProgram& ShaderProgram::addTse(const char* src) {
     return *this;
 }
 
-ShaderProgram& ShaderProgram::build(const std::vector<std::string>& uniforms) {
+ShaderProgram& ShaderProgram::build(const std::vector<std::string>& uniforms, const std::vector<std::string>& outputs) {
     CHECK_GL_ERROR(program_id = glCreateProgram());
     for (auto shader : shaders_temp) {
         CHECK_GL_ERROR(glAttachShader(program_id, shader));
@@ -61,7 +61,9 @@ ShaderProgram& ShaderProgram::build(const std::vector<std::string>& uniforms) {
 
     // Bind attributes (assume all of our programs have these attributes)
     CHECK_GL_ERROR(glBindAttribLocation(program_id, 0, "vertex_position"));
-    CHECK_GL_ERROR(glBindFragDataLocation(program_id, 0, "fragment_color"));
+    for (unsigned i = 0; i < outputs.size(); i++) {
+      CHECK_GL_ERROR(glBindFragDataLocation(program_id, i, outputs[i].c_str()));
+    }
     glLinkProgram(program_id);
     CHECK_GL_PROGRAM_ERROR(program_id);
 

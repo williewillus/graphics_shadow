@@ -13,7 +13,7 @@ public:
     ShaderProgram& addFsh(const char* source);
     ShaderProgram& addTsc(const char* source);
     ShaderProgram& addTse(const char* source);
-    ShaderProgram& build(const std::vector<std::string>& uniforms);
+    ShaderProgram& build(const std::vector<std::string>& uniforms, const std::vector<std::string>& outputs = { "fragment_color" });
 
     // Using
     void activate();

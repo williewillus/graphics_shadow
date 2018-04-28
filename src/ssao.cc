@@ -102,9 +102,30 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
   }
+
+  const char* obj_ssao_geom =
+  #include "shaders/obj_ssao.geom"
+  ;
+  const char* obj_ssao_frag =
+  #include "shaders/obj_ssao.frag"
+  ;
+  const char* obj_vert =
+  #include "shaders/obj.vert"
+  ;
+  
+  ssao_geom_program
+    .addVsh(obj_vert)
+    .addGsh(obj_ssao_geom)
+    .addFsh(obj_ssao_frag)
+    .build({ "projection", "view" });
 }
 
-void SSAOManager::begin_capture_geometry() {
+void SSAOManager::begin_capture_geometry(const glm::mat4& projection, const glm::mat4& view) {
+  CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, gbuffer));
+  CHECK_GL_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+  ssao_geom_program.activate();
+  CHECK_GL_ERROR(glUniformMatrix4fv(ssao_geom_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
+  CHECK_GL_ERROR(glUniformMatrix4fv(ssao_geom_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
 }
 
 void SSAOManager::finish_render(PreviewRenderer& pr) {

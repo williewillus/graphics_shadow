@@ -232,6 +232,14 @@ static void render_shadow_map(ShaderProgram& shadow_program) {
 
 static void render_ssao() {
   static SSAOManager manager {window_width, window_height};
+  // Capture geometry
+  manager.begin_capture_geometry(gui.get_projection(), gui.get_view());
+  obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, false);
+  floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), false, false);
+  CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
+  // Do the rest
+  manager.finish_render(preview_renderer);
 }
 
 int main(int argc, char *argv[]) {

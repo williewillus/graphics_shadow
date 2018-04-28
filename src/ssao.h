@@ -10,9 +10,10 @@ class SSAOManager {
   GLuint gbuffer, pos, normal;
   GLuint ssao_fbo, ssao_tex, ssao_blur_fbo, ssao_blur_tex;
   GLuint noise_tex;
+  ShaderProgram ssao_geom_program;
   std::vector<glm::vec3> samples;
  public:
   SSAOManager(unsigned width, unsigned height);
-  void begin_capture_geometry();
+  void begin_capture_geometry(const glm::mat4& projection, const glm::mat4& view);
   void finish_render(PreviewRenderer& pr);
 };
