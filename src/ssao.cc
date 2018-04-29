@@ -50,7 +50,7 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_tex, 0));
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-      throw std::runtime_error("ssao geometry fbo not complete");
+      throw std::runtime_error("ssao main fbo not complete");
   }
 
   // FBO to hold blurred SSAO data (since blurring an FBO in-place is undefined behaviour)
@@ -64,7 +64,7 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssao_blur_tex, 0));
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-      throw std::runtime_error("ssao geometry fbo not complete");
+      throw std::runtime_error("ssao blur fbo not complete");
   }
   
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
@@ -123,12 +123,15 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
   const char* ssao_blur_frag =
   #include "shaders/ssao_blur.frag"
   ;
+  const char* ssao_test_frag =
+  #include "shaders/ssao_test.frag"
+  ;
   
   ssao_geom_program
     .addVsh(obj_vert)
     .addGsh(obj_ssao_geom)
     .addFsh(obj_ssao_frag)
-    .build({ "projection", "view" });
+    .build({ "projection", "view" }, { "pos", "normal" });
 
   ssao_program
     .addVsh(preview_vert)
@@ -138,6 +141,11 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
   ssao_blur_program
     .addVsh(preview_vert)
     .addFsh(ssao_blur_frag)
+    .build({});
+
+  ssao_test_program
+    .addVsh(preview_vert)
+    .addFsh(ssao_test_frag)
     .build({});
 }
 
@@ -188,12 +196,18 @@ void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr
   {
     CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     CHECK_GL_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+
+    /*
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, pos_tex));
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE1));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal_tex));
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE2));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
+    */
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal_tex));
+    ssao_test_program.activate();
+    pr.draw_quad();
 
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
   }

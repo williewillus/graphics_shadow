@@ -1,4 +1,5 @@
-R"zzz(#version 330 core
+R"zzz(
+#version 330 core
 const int NUM_SAMPLES = 64;
 const int NOISE_SIZE = 4;
 const float radius = 0.5;

@@ -234,8 +234,8 @@ static void render_ssao() {
   static SSAOManager manager {window_width, window_height};
   // Capture geometry
   manager.begin_capture_geometry(gui.get_projection(), gui.get_view());
-  obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, false);
-  floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), false, false);
+  obj_renderer.draw_shadow();
+  floor_renderer.draw_shadow();
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
   // Do the rest
@@ -280,11 +280,13 @@ int main(int argc, char *argv[]) {
     }
 
     render_ssao(); // todo temp
+    /*
     if (gui.use_shadow_volumes()) {
       render_shadow_volume(shadow_program);
     } else {
       render_shadow_map(shadow_program);
     }
+    */
 
     // Poll and swap.
     glfwPollEvents();
