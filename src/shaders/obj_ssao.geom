@@ -16,8 +16,7 @@ void main() {
   vec3 u = normalize(b - a);
   vec3 v = normalize(c - a);
 
-  vec4 cn = view * normalize(vec4(normalize(cross(u, v)), 0));
-  camera_normal = (cn / cn[3]).xyz;
+  camera_normal = normalize(view * vec4(cross(u, v), 0)).xyz;
 
   for (int n = 0; n < gl_in.length(); n++) {
     vec4 cp = view * gl_in[n].gl_Position;
