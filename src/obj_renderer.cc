@@ -27,7 +27,7 @@ ObjRenderer::ObjRenderer() {
     .addVsh(obj_vert)
     .addGsh(obj_geom)
     .addFsh(obj_frag)
-    .build({ "projection", "view", "light_pos", "ambient" });
+    .build({"projection", "view", "light_pos", "depthMVP", "use_shadow_map", "ambient" });
   volume_program
     .addVsh(obj_vert)
     .addGsh(shadow_volume_geom)
@@ -174,7 +174,8 @@ void ObjRenderer::draw_volume(const glm::mat4& projection, const glm::mat4& view
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES_ADJACENCY, obj_faces.size() * 3 * 2, GL_UNSIGNED_INT, 0));
 }
 
-void ObjRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS>& light_pos, bool ambient) {
+void ObjRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS>& light_pos, 
+    const std::array<glm::mat4, NUM_LIGHTS>& depthMVP, const bool use_shadow_map, bool ambient) {
   if (!has_object) {
     return;
   }
@@ -183,13 +184,24 @@ void ObjRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const
 
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
   CHECK_GL_ERROR(glUniformMatrix4fv(program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+  CHECK_GL_ERROR(glUniform1i(program.getUniform("use_shadow_map"), (int) use_shadow_map));
   CHECK_GL_ERROR(glUniform1i(program.getUniform("ambient"), (int) ambient));
+
   for (unsigned i = 0; i < light_pos.size(); i++) {
     std::string loc_name = "light_pos[";
     loc_name += std::to_string(i);
     loc_name += "]";
     auto loc = program.get_uniform_direct(loc_name);
     CHECK_GL_ERROR(glUniform4fv(loc, 1, &light_pos[i][0]));
+  }
+
+  for (unsigned i = 0; i < depthMVP.size(); i++) {
+    std::string loc_name = "depthMVP[";
+    loc_name += std::to_string(i);
+    loc_name += "]";
+
+    auto loc = program.get_uniform_direct(loc_name);
+    CHECK_GL_ERROR(glUniformMatrix4fv(loc, 1, GL_FALSE, &depthMVP[i][0][0]));
   }
 
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, obj_faces.size() * 3, GL_UNSIGNED_INT, 0));
