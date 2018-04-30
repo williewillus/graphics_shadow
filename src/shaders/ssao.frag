@@ -14,7 +14,7 @@ uniform sampler2D noise_tex;
 uniform vec3 offsets[NUM_SAMPLES];
 uniform mat4 projection;
 
-out float fragment_color;
+out vec4 fragment_color;
 
 void main() {
   vec3 pos = texture(pos_tex, tex_coord).xyz;
@@ -41,6 +41,6 @@ void main() {
     }
   }
   occlusion /= NUM_SAMPLES;
-  fragment_color = 1 - occlusion;
+  fragment_color = vec4(1 - occlusion, 0, 0, 1);
 }
 )zzz"

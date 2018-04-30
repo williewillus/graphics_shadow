@@ -159,7 +159,6 @@ void SSAOManager::begin_capture_geometry(const glm::mat4& projection, const glm:
 }
 
 void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr) {
-  static bool dumped = false;
   // SSAO pass
   {
     CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo));
@@ -208,14 +207,7 @@ void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE2));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
     */
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal_tex));
-    if (!dumped) {
-      std::vector<uint8_t> pixels;
-      pixels.resize(1280 * 720 * 3);
-      CHECK_GL_ERROR(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels.data()));
-      SaveJPEG("./debug.jpg", 1280, 720, pixels.data());
-      dumped = true;
-    }
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
     ssao_test_program.activate();
     pr.draw_quad();
 

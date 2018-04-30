@@ -2,7 +2,7 @@ R"zzz(
 #version 330 core
 in vec2 tex_coord;
 uniform sampler2D to_blur;
-out float fragment_color;
+out vec4 fragment_color;
 
 const int RADIUS = 2;
 
@@ -15,7 +15,7 @@ void main() {
       accum += texture(to_blur, tex_coord + offset_uv).r;
     }
   }
-  fragment_color = accum / (2*RADIUS * 2*RADIUS);
+  fragment_color = vec4(accum / (2*RADIUS * 2*RADIUS), 0, 0, 1);
 }
 
 )zzz"
