@@ -7,8 +7,8 @@ in vec3 world_position;
 out vec4 fragment_color;
 
 const int NUM_LIGHTS = 2;
-const vec3 gray = vec3(0.97, 0.97, 0.97);
-const vec3 white = vec3(1.0, 1.0, 1.0);
+const vec3 color_a = vec3(0.48, 0.48, 0.48);
+const vec3 color_b = vec3(0.5, 0.5, 0.5);
 
 uniform vec4 light_pos[NUM_LIGHTS];
 uniform mat4 depthMVP[NUM_LIGHTS];
@@ -44,9 +44,9 @@ void main() {
   vec3 color = vec3(0, 0, 0);
 
   if (floor(mod(world_position[0], 2)) == 1) {
-    base_color = floor(mod(world_position[2], 2)) == 0 ? white : gray;
+    base_color = floor(mod(world_position[2], 2)) == 0 ? color_a : color_b;
   } else {
-    base_color = floor(mod(world_position[2], 2)) == 0 ? gray : white;
+    base_color = floor(mod(world_position[2], 2)) == 0 ? color_b : color_a;
   }
 
   // shadow maps

@@ -20,7 +20,7 @@ const float kFloorXMin = -4.0f;
 const float kFloorXMax = 4.0f;
 const float kFloorZMin = -4.0f;
 const float kFloorZMax = 4.0f;
-const float kFloorY = -1.0f;
+const float kFloorY = -2.0f;
 
 const float kScrollSpeed = 64.0f;
 constexpr unsigned NUM_LIGHTS = 2;
