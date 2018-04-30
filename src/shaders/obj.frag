@@ -45,24 +45,28 @@ void main() {
     return;
   }
 
-  for (int i = 0; i < NUM_LIGHTS; i++) {
-    vec4 light_direction = light_pos[i] - vec4(world_position, 1);
-    float dot_nl = dot(normalize(light_direction), normalize(normal));
-    dot_nl = clamp(dot_nl, 0.0, 1.0);
-    color += clamp(dot_nl * base_color, 0.0, 1.0);
-  }
-
-  color = clamp(color, 0.0, 1.0);
-
   if (use_shadow_map == 1) {
-    float shadow = 0;
     for (int i = 0; i < NUM_LIGHTS; i++) {
+      vec4 light_direction = light_pos[i] - vec4(world_position, 1);
+      float dot_nl = dot(normalize(light_direction), normalize(normal));
+      dot_nl = clamp(dot_nl, 0.0, 1.0);
+
       vec4 shadow_coord = depthMVP[i] * vec4(world_position, 1);
-      shadow += (1/float(NUM_LIGHTS)) * compute_shadow(shadow_coord, i);
+      if (compute_shadow(shadow_coord, i) != 1.0) {
+        color += clamp(dot_nl * base_color, 0.0, 1.0);
+      }
     }
-    fragment_color = NUM_LIGHTS * vec4((1 - shadow) * color, 1.0);
+    color = clamp(color, 0.0, 1.0);
+    fragment_color = vec4(color, 1.0);
   }
   else {
+    for (int i = 0; i < NUM_LIGHTS; i++) {
+      vec4 light_direction = light_pos[i] - vec4(world_position, 1);
+      float dot_nl = dot(normalize(light_direction), normalize(normal));
+      dot_nl = clamp(dot_nl, 0.0, 1.0);
+      color += clamp(dot_nl * base_color, 0.0, 1.0);
+    }
+    color = clamp(color, 0.0, 1.0);
     fragment_color = vec4(color, 1.0);
   }
 }
