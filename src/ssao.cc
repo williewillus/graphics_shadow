@@ -26,9 +26,16 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal_tex, 0));
 
+    CHECK_GL_ERROR(glGenTextures(1, &diffuse_tex));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, diffuse_tex));
+    CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr));
+    CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+    CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+    CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, diffuse_tex, 0));
+    
     // Attach them
-    GLuint attach[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-    CHECK_GL_ERROR(glDrawBuffers(2, attach));
+    GLuint attach[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
+    CHECK_GL_ERROR(glDrawBuffers(3, attach));
     
     // Depth buffer
     GLuint depth;
@@ -107,7 +114,7 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
   }
 
   const char* obj_ssao_geom =
-  #include "shaders/obj_ssao.geom"
+  #include "shaders/obj.geom"
   ;
   const char* obj_ssao_frag =
   #include "shaders/obj_ssao.frag"
@@ -132,7 +139,7 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
     .addVsh(obj_vert)
     .addGsh(obj_ssao_geom)
     .addFsh(obj_ssao_frag)
-    .build({ "projection", "view" }, { "pos", "normal" });
+    .build({ "projection", "view" }, { "pos", "normal", "diffuse" });
 
   ssao_program
     .addVsh(preview_vert)
@@ -207,7 +214,7 @@ void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE2));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
     */
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal_tex));
     ssao_test_program.activate();
     pr.draw_quad();
 
