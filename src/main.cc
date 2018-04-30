@@ -156,8 +156,8 @@ static void render_shadow_volume(ShaderProgram& shadow_program) {
 
     CHECK_GL_ERROR(glStencilFunc(GL_EQUAL, 0x0, 0xFF)); // draw only if stencil buf 0
     CHECK_GL_ERROR(glStencilOpSeparate(GL_BACK, GL_KEEP, GL_KEEP, GL_KEEP));
-    floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), false, false);
-    obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), false, false);
+    floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), i);
+    obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), i);
     CHECK_GL_ERROR(glDisable(GL_STENCIL_TEST));
 
     if (gui.show_silhouettes()) {
@@ -215,8 +215,8 @@ static void render_shadow_map(ShaderProgram& shadow_program) {
   CHECK_GL_ERROR(glDrawBuffer(GL_BACK));
 
   CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
-  obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, depthMVP, true, false);
-  floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, depthMVP, true, false);
+  obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, depthMVP, -1);
+  floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, depthMVP, -1);
 
   // draw preview
   if (gui.show_preview()) {
