@@ -12,7 +12,7 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
     // Buffers for position and normal
     CHECK_GL_ERROR(glGenTextures(1, &pos_tex));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, pos_tex));
-    CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr));
+    CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -21,7 +21,7 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
 
     CHECK_GL_ERROR(glGenTextures(1, &normal_tex));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal_tex));
-    CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr));
+    CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGB, GL_FLOAT, nullptr));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
     CHECK_GL_ERROR(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, normal_tex, 0));
@@ -208,7 +208,7 @@ void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE2));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
     */
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, pos_tex));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal_tex));
     if (!dumped) {
       std::vector<uint8_t> pixels;
       pixels.resize(1280 * 720 * 3);
