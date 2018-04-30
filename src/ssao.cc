@@ -1,6 +1,7 @@
 #include "ssao.h"
 #include <iostream>
 #include <debuggl.h>
+#include <jpegio.h>
 
 SSAOManager::SSAOManager(unsigned width, unsigned height) {
   // Make FBO for deferred rendering
@@ -95,7 +96,7 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
     }
     CHECK_GL_ERROR(glGenTextures(1, &noise_tex));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, noise_tex));
-    CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, NOISE_SIZE, NOISE_SIZE, 0, GL_RGB, GL_FLOAT, &noise[0]));
+    CHECK_GL_ERROR(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, NOISE_SIZE, NOISE_SIZE, 0, GL_RGB, GL_FLOAT, &noise[0]));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 
@@ -141,7 +142,7 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
   ssao_blur_program
     .addVsh(preview_vert)
     .addFsh(ssao_blur_frag)
-    .build({});
+    .build({ "to_blur" });
 
   ssao_test_program
     .addVsh(preview_vert)
@@ -158,6 +159,7 @@ void SSAOManager::begin_capture_geometry(const glm::mat4& projection, const glm:
 }
 
 void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr) {
+  static bool dumped = false;
   // SSAO pass
   {
     CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo));
@@ -187,6 +189,7 @@ void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr
     CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, ssao_blur_fbo));
     CHECK_GL_ERROR(glClear(GL_COLOR_BUFFER_BIT));
     ssao_blur_program.activate();
+    CHECK_GL_ERROR(glUniform1i(ssao_blur_program.getUniform("to_blur"), 0));
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_tex));
     pr.draw_quad(); 
@@ -205,7 +208,14 @@ void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE2));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
     */
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, pos_tex));
+    if (!dumped) {
+      std::vector<uint8_t> pixels;
+      pixels.resize(1280 * 720 * 3);
+      CHECK_GL_ERROR(glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels.data()));
+      SaveJPEG("./debug.jpg", 1280, 720, pixels.data());
+      dumped = true;
+    }
     ssao_test_program.activate();
     pr.draw_quad();
 

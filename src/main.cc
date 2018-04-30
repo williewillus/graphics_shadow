@@ -257,7 +257,8 @@ int main(int argc, char *argv[]) {
     .build({ "projection", "view" });
 
   read_args(argc, argv, obj_renderer);
-
+  CHECK_GL_ERROR(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+  CHECK_GL_ERROR(glPixelStorei(GL_PACK_ALIGNMENT, 1));
   
   while (!glfwWindowShouldClose(window)) {
     // Setup some basic window stuff.
