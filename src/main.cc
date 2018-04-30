@@ -233,9 +233,9 @@ static void render_shadow_map(ShaderProgram& shadow_program) {
 static void render_ssao() {
   static SSAOManager manager {window_width, window_height};
   // Capture geometry
-  manager.begin_capture_geometry(gui.get_projection(), gui.get_view());
-  obj_renderer.draw_shadow();
-  floor_renderer.draw_shadow();
+  manager.begin_capture_geometry();
+  obj_renderer.draw_ssao(gui.get_projection(), gui.get_view());
+  floor_renderer.draw_ssao(gui.get_projection(), gui.get_view());
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
   // Do the rest

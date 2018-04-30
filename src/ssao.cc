@@ -113,15 +113,6 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
     CHECK_GL_ERROR(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
   }
 
-  const char* obj_ssao_geom =
-  #include "shaders/obj.geom"
-  ;
-  const char* obj_ssao_frag =
-  #include "shaders/obj_ssao.frag"
-  ;
-  const char* obj_vert =
-  #include "shaders/obj.vert"
-  ;
   const char* preview_vert =
   #include "shaders/preview.vert"
   ;
@@ -135,12 +126,6 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
   #include "shaders/ssao_test.frag"
   ;
   
-  ssao_geom_program
-    .addVsh(obj_vert)
-    .addGsh(obj_ssao_geom)
-    .addFsh(obj_ssao_frag)
-    .build({ "projection", "view" }, { "pos", "normal", "diffuse" });
-
   ssao_program
     .addVsh(preview_vert)
     .addFsh(ssao_frag)
@@ -157,12 +142,9 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
     .build({});
 }
 
-void SSAOManager::begin_capture_geometry(const glm::mat4& projection, const glm::mat4& view) {
+void SSAOManager::begin_capture_geometry() {
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, gbuffer));
   CHECK_GL_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-  ssao_geom_program.activate();
-  CHECK_GL_ERROR(glUniformMatrix4fv(ssao_geom_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
-  CHECK_GL_ERROR(glUniformMatrix4fv(ssao_geom_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
 }
 
 void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr) {
@@ -214,7 +196,7 @@ void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE2));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
     */
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal_tex));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, diffuse_tex));
     ssao_test_program.activate();
     pr.draw_quad();
 

@@ -46,6 +46,7 @@ class ObjRenderer {
 
   ShaderProgram program;
   ShaderProgram volume_program;
+  ShaderProgram ssao_program;
 public:
   ObjRenderer();
 
@@ -53,5 +54,6 @@ public:
   void draw(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS>& light_pos, bool ambient);
   void draw_volume(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
   void draw_shadow();
+  void draw_ssao(const glm::mat4& projection, const glm::mat4& view);
 };
 #endif

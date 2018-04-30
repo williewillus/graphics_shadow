@@ -22,6 +22,9 @@ ObjRenderer::ObjRenderer() {
   const char* shadow_volume_geom =
   #include "shaders/shadow_volume.geom"
   ;
+  const char* obj_ssao_frag =
+  #include "shaders/obj_ssao.frag"
+  ;
 
   program
     .addVsh(obj_vert)
@@ -33,6 +36,11 @@ ObjRenderer::ObjRenderer() {
     .addGsh(shadow_volume_geom)
     .addFsh(silhouette_frag)
     .build({ "projection", "view", "light_pos" });
+  ssao_program
+    .addVsh(obj_vert)
+    .addGsh(obj_geom)
+    .addFsh(obj_ssao_frag)
+    .build({ "projection", "view" }, { "pos", "normal", "diffuse" });
 }
 
 // Return vertex index opposite to given face
@@ -159,6 +167,17 @@ void ObjRenderer::draw_shadow() {
 
   CHECK_GL_ERROR(glBindVertexArray(vao));
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, obj_faces.size() * 3, GL_UNSIGNED_INT, 0));
+}
+
+void ObjRenderer::draw_ssao(const glm::mat4& projection, const glm::mat4& view) {
+  if (!has_object) {
+    return;
+  }
+
+  ssao_program.activate();
+  CHECK_GL_ERROR(glUniformMatrix4fv(ssao_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
+  CHECK_GL_ERROR(glUniformMatrix4fv(ssao_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+  draw_shadow();
 }
 
 void ObjRenderer::draw_volume(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos) {
