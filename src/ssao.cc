@@ -125,6 +125,9 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
   const char* ssao_test_frag =
   #include "shaders/ssao_test.frag"
   ;
+  const char* ssao_finalize_frag =
+  #include "shaders/ssao_finalize.frag"
+  ;
   
   ssao_program
     .addVsh(preview_vert)
@@ -135,6 +138,11 @@ SSAOManager::SSAOManager(unsigned width, unsigned height) {
     .addVsh(preview_vert)
     .addFsh(ssao_blur_frag)
     .build({ "to_blur" });
+
+  ssao_finalize_program
+    .addVsh(preview_vert)
+    .addFsh(ssao_finalize_frag)
+    .build({ "view", "pos_tex", "normal_tex", "diffuse_tex", "ao_tex" });
 
   ssao_test_program
     .addVsh(preview_vert)
@@ -147,7 +155,7 @@ void SSAOManager::begin_capture_geometry() {
   CHECK_GL_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }
 
-void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr) {
+void SSAOManager::finish_render(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS> light_pos, PreviewRenderer& pr) {
   // SSAO pass
   {
     CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, ssao_fbo));
@@ -188,18 +196,28 @@ void SSAOManager::finish_render(const glm::mat4& projection, PreviewRenderer& pr
     CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     CHECK_GL_ERROR(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-    /*
+    ssao_finalize_program.activate();
+    for (unsigned i = 0; i < light_pos.size(); i++) {
+      std::string loc_name = "light_pos[" +  std::to_string(i) + "]";
+      auto loc = ssao_finalize_program.get_uniform_direct(loc_name);
+      CHECK_GL_ERROR(glUniform4fv(loc, 1, &light_pos[i][0]));
+    }
+    CHECK_GL_ERROR(glUniform1i(ssao_finalize_program.getUniform("pos_tex"), 0));
+    CHECK_GL_ERROR(glUniform1i(ssao_finalize_program.getUniform("normal_tex"), 1));
+    CHECK_GL_ERROR(glUniform1i(ssao_finalize_program.getUniform("diffuse_tex"), 2));
+    CHECK_GL_ERROR(glUniform1i(ssao_finalize_program.getUniform("ao_tex"), 3));
+    CHECK_GL_ERROR(glUniformMatrix4fv(ssao_finalize_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, pos_tex));
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE1));
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, normal_tex));
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE2));
-    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
-    */
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, diffuse_tex));
-    ssao_test_program.activate();
-    pr.draw_quad();
+    CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE3));
+    CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D, ssao_blur_tex));
 
+    pr.draw_quad();
     CHECK_GL_ERROR(glActiveTexture(GL_TEXTURE0));
   }
 }

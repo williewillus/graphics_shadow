@@ -2,7 +2,7 @@ R"zzz(
 #version 330 core
 const int NUM_SAMPLES = 64;
 const int NOISE_SIZE = 4;
-const float radius = 0.5;
+const float radius = 0.75;
 const float bias = 0.025;
 const vec2 noise_rescale = vec2(1280.0/float(NOISE_SIZE), 720.0/float(NOISE_SIZE));
 

@@ -8,8 +8,8 @@ in vec3 world_position;
 in vec3 camera_normal;
 in vec3 camera_position;
 
-const vec4 gray = vec4(0.97, 0.97, 0.97, 1.0);
-const vec4 white = vec4(1.0, 1.0, 1.0, 1.0);
+const vec4 gray = vec4(0.48, 0.48, 0.48, 1.0);
+const vec4 white = vec4(0.5, 0.5, 0.5, 1.0);
 
 void main() {
   pos = vec4(camera_position, 1);

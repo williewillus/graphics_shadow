@@ -21,6 +21,12 @@ struct MatrixPointers {
   const float *projection, *model, *view;
 };
 
+enum Mode {
+  MAP,
+  VOLUME,
+  SSAO,
+};
+
 class GUI {
 public:
   GUI(GLFWwindow *window);
@@ -56,7 +62,7 @@ public:
   unsigned get_current_light() const { return current_light; }
   bool show_silhouettes() const { return show_silhouettes_; }
   bool show_preview() const { return show_preview_; }
-  bool use_shadow_volumes() const { return use_shadow_volumes_; }
+  Mode current_mode() const { return current_mode_; }
 
   void updateMotion();
   
@@ -69,7 +75,7 @@ private:
   bool show_preview_ = true;
   bool show_silhouettes_ = false;
   bool drag_state_ = false;
-  bool use_shadow_volumes_= true;
+  Mode current_mode_ = VOLUME;
   int current_button_ = -1;
   float roll_speed_ = M_PI / 64.0f;
   float last_x_ = 0.0f, last_y_ = 0.0f, current_x_ = 0.0f, current_y_ = 0.0f;

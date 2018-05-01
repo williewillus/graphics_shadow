@@ -239,7 +239,7 @@ static void render_ssao() {
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
   // Do the rest
-  manager.finish_render(gui.get_projection(), preview_renderer);
+  manager.finish_render(gui.get_projection(), gui.get_view(), light_positions, preview_renderer);
 }
 
 int main(int argc, char *argv[]) {
@@ -280,15 +280,12 @@ int main(int argc, char *argv[]) {
       light_directions.at(i) = -glm::normalize(light_positions.at(i));
     }
 
-    render_ssao(); // todo temp
-    /*
-    if (gui.use_shadow_volumes()) {
-      render_shadow_volume(shadow_program);
-    } else {
-      render_shadow_map(shadow_program);
+    switch (gui.current_mode()) {
+    case VOLUME: render_shadow_volume(shadow_program); break;
+    case MAP: render_shadow_map(shadow_program); break;
+    case SSAO: render_ssao(); break;
     }
-    */
-
+    
     // Poll and swap.
     glfwPollEvents();
     glfwSwapBuffers(window);
