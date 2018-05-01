@@ -161,7 +161,7 @@ static void render_shadow_volume(ShaderProgram& shadow_program) {
     obj_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, std::array<glm::mat4, NUM_LIGHTS>(), i);
     CHECK_GL_ERROR(glDisable(GL_STENCIL_TEST));
 
-    if (gui.show_silhouettes()) {
+    if (gui.debug_mode()) {
       obj_renderer.draw_volume(gui.get_projection(), gui.get_view(), light_positions.at(gui.get_current_light()));
     }
   }
@@ -220,7 +220,7 @@ static void render_shadow_map(ShaderProgram& shadow_program) {
   floor_renderer.draw(gui.get_projection(), gui.get_view(), light_positions, depthMVP, -1);
 
   // draw preview
-  if (gui.show_preview()) {
+  if (gui.debug_mode()) {
     CHECK_GL_ERROR(glBindTexture(GL_TEXTURE_2D_ARRAY, map_depth_tex));
     glViewport(5, 5, 640, 480);
     preview_renderer.draw(kNear, kFar, gui.get_current_light());
@@ -236,7 +236,7 @@ static void render_ssao() {
   CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 
   // Do the rest
-  manager.finish_render(gui.get_projection(), gui.get_view(), light_positions, preview_renderer);
+  manager.finish_render(gui.get_projection(), gui.get_view(), light_positions, preview_renderer, gui.debug_mode());
 }
 
 int main(int argc, char *argv[]) {

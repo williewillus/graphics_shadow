@@ -6,7 +6,7 @@ out vec4 fragment_color;
 
 void main() {
   vec4 color = texture(ao_tex, tex_coord);
-  fragment_color = vec4(color.rgb, 1);
+  fragment_color = vec4(color.rrr, 1);
 }
 
 )zzz"

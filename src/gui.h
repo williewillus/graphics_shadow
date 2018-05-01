@@ -60,8 +60,7 @@ public:
   const glm::mat4& get_view()       const { return view_matrix_; }
   const glm::mat4& get_projection() const { return projection_matrix_; }
   unsigned get_current_light() const { return current_light; }
-  bool show_silhouettes() const { return show_silhouettes_; }
-  bool show_preview() const { return show_preview_; }
+  bool debug_mode() const { return debug_mode_; }
   Mode current_mode() const { return current_mode_; }
 
   void updateMotion();
@@ -72,8 +71,7 @@ private:
   int window_width_, window_height_;
 
   unsigned current_light = 0;
-  bool show_preview_ = true;
-  bool show_silhouettes_ = false;
+  bool debug_mode_ = false;
   bool drag_state_ = false;
   Mode current_mode_ = VOLUME;
   int current_button_ = -1;

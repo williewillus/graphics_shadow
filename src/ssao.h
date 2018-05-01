@@ -15,5 +15,5 @@ class SSAOManager {
  public:
   SSAOManager(unsigned width, unsigned height);
   void begin_capture_geometry();
-  void finish_render(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS> light_pos, PreviewRenderer& pr);
+  void finish_render(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS> light_pos, PreviewRenderer& pr, bool debug);
 };
