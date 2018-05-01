@@ -19,9 +19,7 @@ void main() {
   vec3 diffuse = texture(diffuse_tex, tex_coord).rgb;
   float ao = texture(ao_tex, tex_coord).r;
   
-  vec3 ambient = vec3(0.3 * diffuse);
-
-  vec3 color = ambient;
+  vec3 color = vec3(0, 0, 0);
   for (int i = 0; i < NUM_LIGHTS; i++) {
     vec3 light_direction = (view * light_pos[i]).xyz - pos;
     float dot_nl = dot(normalize(light_direction), normalize(normal));
