@@ -8,6 +8,7 @@
 #include "preview_renderer.h"
 #include "obj_renderer.h"
 #include "depth_map.h"
+#include "ssao.h"
 
 #include <algorithm>
 #include <array>
@@ -226,6 +227,18 @@ static void render_shadow_map(ShaderProgram& shadow_program) {
   }
 }
 
+static void render_ssao() {
+  static SSAOManager manager {window_width, window_height};
+  // Capture geometry
+  manager.begin_capture_geometry();
+  obj_renderer.draw_ssao(gui.get_projection(), gui.get_view());
+  floor_renderer.draw_ssao(gui.get_projection(), gui.get_view());
+  CHECK_GL_ERROR(glBindFramebuffer(GL_FRAMEBUFFER, 0));
+
+  // Do the rest
+  manager.finish_render(gui.get_projection(), gui.get_view(), light_positions, preview_renderer);
+}
+
 int main(int argc, char *argv[]) {
   const char* shadow_vert =
   #include "shaders/shadow.vert"
@@ -241,7 +254,8 @@ int main(int argc, char *argv[]) {
     .build({ "projection", "view" });
 
   read_args(argc, argv, obj_renderer);
-
+  CHECK_GL_ERROR(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+  CHECK_GL_ERROR(glPixelStorei(GL_PACK_ALIGNMENT, 1));
   
   while (!glfwWindowShouldClose(window)) {
     // Setup some basic window stuff.
@@ -263,12 +277,12 @@ int main(int argc, char *argv[]) {
       light_directions.at(i) = -glm::normalize(light_positions.at(i));
     }
 
-    if (gui.use_shadow_volumes()) {
-      render_shadow_volume(shadow_program);
-    } else {
-      render_shadow_map(shadow_program);
+    switch (gui.current_mode()) {
+    case VOLUME: render_shadow_volume(shadow_program); break;
+    case MAP: render_shadow_map(shadow_program); break;
+    case SSAO: render_ssao(); break;
     }
-
+    
     // Poll and swap.
     glfwPollEvents();
     glfwSwapBuffers(window);

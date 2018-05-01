@@ -40,7 +40,7 @@ void GUI::keyCallback(GLFWwindow* window, int key, int scancode, int action, int
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     } 
     return;
-  } else if (key == GLFW_KEY_C && action == GLFW_PRESS && !use_shadow_volumes_) {
+  } else if (key == GLFW_KEY_C && action == GLFW_PRESS && current_mode_ == MAP) {
     show_preview_ = !show_preview_;
     std::cout << "Preview: " << (show_preview_ ? "shown" : "hidden") << std::endl;
   } else if (key == GLFW_KEY_B && action == GLFW_PRESS) {
@@ -49,12 +49,18 @@ void GUI::keyCallback(GLFWwindow* window, int key, int scancode, int action, int
   } else if (key == GLFW_KEY_V && action == GLFW_PRESS) {
     current_light = (current_light - 1) % NUM_LIGHTS;
     std::cout << "Selected light " << current_light << std::endl;
-  } else if (key == GLFW_KEY_X && action == GLFW_PRESS && use_shadow_volumes_) {
+  } else if (key == GLFW_KEY_X && action == GLFW_PRESS && current_mode_ == VOLUME) {
     show_silhouettes_ = !show_silhouettes_;
     std::cout << "Silhouettes: " << (show_silhouettes_ ? "shown" : "hidden") << std::endl;
   } else if (key == GLFW_KEY_Z && action == GLFW_PRESS) {
-    use_shadow_volumes_ = !use_shadow_volumes_;
-    std::cout << "Shadow mode: " << (use_shadow_volumes_ ? "shadow volume" : "shadow map") << std::endl;
+    current_mode_ = (Mode) ((current_mode_ + 1) % 3);
+    std::cout << "Shadow mode: ";
+    switch (current_mode_) {
+    case MAP: std::cout << "shadow map"; break;
+    case VOLUME: std::cout << "shadow volume"; break;
+    case SSAO: std::cout << "ssao"; break;
+    }
+    std::cout << std::endl;
   } else if (key == GLFW_KEY_1 && action == GLFW_PRESS) {
     light_positions[current_light][0] -= 1;
     std::cout << "light pos: " << glm::to_string(light_positions[current_light]) << std::endl;

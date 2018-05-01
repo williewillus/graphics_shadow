@@ -26,4 +26,5 @@ public:
   PreviewRenderer();
   void draw(const float& kNear, const float& kFar, unsigned current_preview);
   void draw_combine();
+  void draw_quad();
 };

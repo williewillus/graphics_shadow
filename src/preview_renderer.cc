@@ -46,18 +46,20 @@ PreviewRenderer::PreviewRenderer() {
 }
 
 void PreviewRenderer::draw(const float& kNear, const float& kFar, unsigned current_preview) {
-  CHECK_GL_ERROR(glBindVertexArray(vao));
   program.activate();
-
   CHECK_GL_ERROR(glUniform1fv(program.getUniform("near_plane"), 1, &kNear));
   CHECK_GL_ERROR(glUniform1fv(program.getUniform("far_plane"), 1, &kFar));
   CHECK_GL_ERROR(glUniform1i(program.getUniform("idx"), current_preview));
 
+  draw_quad();
+}
+
+void PreviewRenderer::draw_quad() {
+  CHECK_GL_ERROR(glBindVertexArray(vao));
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
 }
 
 void PreviewRenderer::draw_combine() {
   combine_program.activate();
-  CHECK_GL_ERROR(glBindVertexArray(vao));
-  CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
+  draw_quad();
 }

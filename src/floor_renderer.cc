@@ -14,12 +14,20 @@ FloorRenderer::FloorRenderer() {
   const char* floor_frag = 
   #include "shaders/floor.frag"
   ;
+  const char* floor_ssao_frag =
+  #include "shaders/floor_ssao.frag"
+  ;
 
   program
     .addVsh(floor_vert)
     .addGsh(floor_geom)
     .addFsh(floor_frag)
     .build({"projection", "view", "light_pos", "depthMVP", "light_idx" });
+  ssao_program
+    .addVsh(floor_vert)
+    .addGsh(floor_geom)
+    .addFsh(floor_ssao_frag)
+    .build({"projection", "view" }, { "pos", "normal", "diffuse" });
 
   // init VAO/VBO/EBO and upload data
   CHECK_GL_ERROR(glGenVertexArrays(1, &vao));
@@ -44,6 +52,13 @@ FloorRenderer::FloorRenderer() {
 void FloorRenderer::draw_shadow() {
   CHECK_GL_ERROR(glBindVertexArray(vao));
   CHECK_GL_ERROR(glDrawElements(GL_TRIANGLES, 2 * 3, GL_UNSIGNED_INT, 0));
+}
+
+void FloorRenderer::draw_ssao(const glm::mat4& projection, const glm::mat4& view) {
+  ssao_program.activate();
+  CHECK_GL_ERROR(glUniformMatrix4fv(ssao_program.getUniform("projection"), 1, GL_FALSE, &projection[0][0]));
+  CHECK_GL_ERROR(glUniformMatrix4fv(ssao_program.getUniform("view"), 1, GL_FALSE, &view[0][0]));
+  draw_shadow();
 }
 
 void FloorRenderer::draw(const glm::mat4& projection, const glm::mat4& view, const std::array<glm::vec4, NUM_LIGHTS>& light_pos, 
