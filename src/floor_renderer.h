@@ -7,19 +7,6 @@
 #include "config.h"
 #include "shader.h"
 
-static const glm::vec3 FLOOR_VERTICES[] = {
-  { kFloorXMin, kFloorY, kFloorZMax },
-  { kFloorXMax, kFloorY, kFloorZMax },
-  { kFloorXMax, kFloorY, kFloorZMin },
-  { kFloorXMin, kFloorY, kFloorZMin }
-};
-
-static const glm::uvec3 FLOOR_FACES[] = {
-  { 0, 1, 2 },
-  { 2, 3, 0 }
-};
-
-
 class FloorRenderer {
   GLuint vao;
   GLuint vbo;
@@ -35,5 +22,6 @@ public:
       const std::array<glm::mat4, NUM_LIGHTS>& depthMVP, const int light_idx);
   void draw_shadow();
   void draw_ssao(const glm::mat4& projection, const glm::mat4& view);
+  void adjust_height(float objMin);
 };
 #endif

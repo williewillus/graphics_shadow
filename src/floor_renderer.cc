@@ -3,6 +3,11 @@
 #include <debuggl.h>
 #include <glm/ext.hpp>
 
+static const glm::uvec3 FLOOR_FACES[] = {
+  { 0, 1, 2 },
+  { 2, 3, 0 }
+};
+
 FloorRenderer::FloorRenderer() {
   // init shaders
   const char* floor_vert = 
@@ -35,7 +40,6 @@ FloorRenderer::FloorRenderer() {
 
   CHECK_GL_ERROR(glGenBuffers(1, &vbo));
   CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, vbo));
-  CHECK_GL_ERROR(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 3, &FLOOR_VERTICES[0], GL_STATIC_DRAW));
 
   CHECK_GL_ERROR(glGenBuffers(1, &ebo));
   CHECK_GL_ERROR(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo));
@@ -44,9 +48,23 @@ FloorRenderer::FloorRenderer() {
   CHECK_GL_ERROR(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr));
   CHECK_GL_ERROR(glEnableVertexAttribArray(0));
 
+  adjust_height(0.1f);
+
   // cleanup
   CHECK_GL_ERROR(glBindVertexArray(0));
   CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, 0));
+}
+
+void FloorRenderer::adjust_height(float objMin) {
+  const std::array<glm::vec3, 4> floor_vertices = {
+    glm::vec3 { kFloorXMin, objMin - 0.1f, kFloorZMax },
+    glm::vec3 { kFloorXMax, objMin - 0.1f, kFloorZMax },
+    glm::vec3 { kFloorXMax, objMin - 0.1f, kFloorZMin },
+    glm::vec3 { kFloorXMin, objMin - 0.1f, kFloorZMin }
+  };
+
+  CHECK_GL_ERROR(glBindBuffer(GL_ARRAY_BUFFER, vbo));
+  CHECK_GL_ERROR(glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4 * 3, floor_vertices.data(), GL_STATIC_DRAW));
 }
 
 void FloorRenderer::draw_shadow() {

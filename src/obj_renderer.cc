@@ -1,8 +1,10 @@
 #include "obj_renderer.h"
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <debuggl.h>
 #include <glm/ext.hpp>
+#include <limits>
 #include <unordered_map>
 #include <utility>
 
@@ -63,10 +65,12 @@ bool ObjRenderer::load(const std::string& file) {
   if (!fin.good()) 
     return false;
 
+  float min = std::numeric_limits<float>::max();
   while(fin >> type) {
     if (type == 'v') {
       fin >> v1 >> v2 >> v3;
       obj_vertices.push_back({ v1, v2, v3 });
+      min = std::min(min, v2);
     } else if (type == 'f') {
       fin >> x >> y >> z;
       obj_faces.push_back({ x - 1, y - 1, z - 1 });
@@ -76,6 +80,7 @@ bool ObjRenderer::load(const std::string& file) {
       return false;
     }
   }
+  min_y = min;
 
   // build edge -> two face idxs sharing it
   std::unordered_map<Edge, std::pair<unsigned, unsigned>> edge_to_face;

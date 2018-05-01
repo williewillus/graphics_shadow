@@ -47,6 +47,7 @@ class ObjRenderer {
   ShaderProgram program;
   ShaderProgram volume_program;
   ShaderProgram ssao_program;
+  float min_y = 0.1;
 public:
   ObjRenderer();
 
@@ -58,5 +59,6 @@ public:
   void draw_volume(const glm::mat4& projection, const glm::mat4& view, const glm::vec4& light_pos);
   void draw_shadow();
   void draw_ssao(const glm::mat4& projection, const glm::mat4& view);
+  float get_min_y() const { return min_y; }
 };
 #endif
