@@ -4,7 +4,7 @@ Names:
 
 Building:
 - Setup cmake and compile like standard project
-- Run `bin/shadow -o <OBJ file>`
+- Run `bin/shadow <OBJ file>`
 - The OBJ mesh must be closed
 
 Controls:

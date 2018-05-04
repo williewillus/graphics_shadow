@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <array>
 #include <fstream>
-#include <getopt.h>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -60,31 +59,6 @@ GLFWwindow *init_glefw() {
   std::cout << "OpenGL version supported:" << version << "\n";
 
   return ret;
-}
-
-void read_args(int argc, char *argv[], ObjRenderer& obj_renderer, FloorRenderer& floor_renderer) {
-  const struct option opts[] = {
-    { "obj", required_argument, nullptr, 'o' },
-    { nullptr, 0, nullptr, 0 },
-  };
-  
-  int c;
-  while ((c = getopt_long(argc, argv, "o:", opts, nullptr)) != -1) {
-    switch (c) {
-    case 'o': {
-      if (!obj_renderer.load(optarg))
-	std::cerr << "Failed to load OBJ " << optarg << std::endl;
-      else {
-	floor_renderer.adjust_height(obj_renderer.get_min_y());
-      }
-      break;
-    }
-    case '?': {
-      std::cerr << "Usage: '" << argv[0] << " --obj <OBJ file>'" << std::endl;
-      std::exit(-1);
-    }
-    }
-  }
 }
 
 std::array<glm::vec4, NUM_LIGHTS> light_positions = {
@@ -243,6 +217,16 @@ static void render_ssao() {
 }
 
 int main(int argc, char *argv[]) {
+  if (argc < 2) {
+    std::cerr << "Please pass OBJ file to load" << std::endl;
+    return 1;
+  } else if (!obj_renderer.load(argv[1])) {
+    std::cerr << "Failed to load OBJ " << argv[1] << std::endl;
+    return 1;
+  } else {
+    floor_renderer.adjust_height(obj_renderer.get_min_y());
+  }
+  
   const char* shadow_vert =
   #include "shaders/shadow.vert"
     ;
@@ -256,7 +240,6 @@ int main(int argc, char *argv[]) {
     .addFsh(shadow_frag)
     .build({ "projection", "view" });
 
-  read_args(argc, argv, obj_renderer, floor_renderer);
   CHECK_GL_ERROR(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
   CHECK_GL_ERROR(glPixelStorei(GL_PACK_ALIGNMENT, 1));
   
