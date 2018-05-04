@@ -3,7 +3,7 @@ Names:
 - John Fang (jf35533)
 
 Building:
-- Setup cmake and compile like standard project
+- Setup cmake and compile like standard project (mkdir build, cd build, cmake .., make)
 - Run `bin/shadow <OBJ file>`
 - The OBJ mesh must be closed
 
@@ -18,8 +18,8 @@ Controls:
 
 Extra Credit:
 - screen space AO
+- We affirm that we have done the course instructor survey online for 10 extra points.
 
 Report:
 - See report.pdf
 
-We affirm that we have done the course instructor survey online for 10 extra points.
